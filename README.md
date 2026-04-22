@@ -87,4 +87,4 @@ This project is licensed under the MIT License – see the [LICENSE](LICENSE) fi
 
 ## Acknowledgements
 
-- The parser implementation in `src/parser/` is based on the open-source SOMTParser project (https://github.com/fuqi-jia/SOMTParser). Substantial modifications and extensions have been made by us to adapt the parser for SMTStabilizer's normalization framework and additional requirements.
+- The parser implementation in `src/parser/` is based on the open-source SOMTParser project (https://github.com/fuqi-jia/SOMTParser). Modifications and extensions have been made by us to adapt the parser for SMTStabilizer's normalization framework and additional requirements.
