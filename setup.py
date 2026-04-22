@@ -401,11 +401,10 @@ def build_mpfr():
         # Configure
         info("Running configure")
         env = os.environ.copy()
-        opt_flags = "-O3 -march=native -mtune=native -flto -fno-strict-aliasing -fwrapv -pipe"
+        opt_flags = "-O3 -march=native -mtune=native -fno-strict-aliasing -fwrapv -pipe"
         env.update({
             "CFLAGS": opt_flags,
             "CXXFLAGS": opt_flags + " -std=gnu++20",
-            "LDFLAGS": "-flto",
         })
 
         # Point MPFR configure to the staged GMP include/lib that this script maintains
@@ -478,11 +477,10 @@ def build_gmp():
         # Configure
         info("Running configure")
         env = os.environ.copy()
-        opt_flags = "-O3 -march=native -mtune=native -flto -fno-strict-aliasing -fwrapv -pipe"
+        opt_flags = "-O3 -march=native -mtune=native -fno-strict-aliasing -fwrapv -pipe"
         env.update({
             "CFLAGS": opt_flags,
             "CXXFLAGS": opt_flags + " -std=gnu++20",
-            "LDFLAGS": "-flto",
         })
         cfg_cmd = [
             "./configure",
@@ -561,4 +559,34 @@ if __name__ == "__main__":
         build_mpfr()
     except Exception as e:
         error(f"build_mpfr failed: {e}")
+        sys.exit(1)
+    # Remove existing build directory and perform a Release build using CMake
+    try:
+        build_dir = base_dir / "build"
+        jobs = max(1, (os.cpu_count() or 1))
+        if build_dir.exists():
+            info(f"Removing existing build directory: {build_dir}")
+            try:
+                shutil.rmtree(build_dir)
+                success(f"Removed {build_dir}")
+            except Exception as e:
+                warn(f"Failed to remove {build_dir}: {e}")
+
+        info("Configuring project with CMake (Release)")
+        subprocess.run(
+            ["cmake", "-S", str(base_dir), "-B", str(build_dir), "-DCMAKE_BUILD_TYPE=Release"],
+            check=True,
+        )
+
+        info("Building project (Release)")
+        subprocess.run(
+            ["cmake", "--build", str(build_dir), "--config", "Release", "--", f"-j{jobs}"],
+            check=True,
+        )
+        success("Release build completed successfully.")
+    except subprocess.CalledProcessError as e:
+        error(f"Release build failed: {e}")
+        sys.exit(1)
+    except Exception as e:
+        error(f"Unexpected error during Release build: {e}")
         sys.exit(1)
