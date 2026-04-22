@@ -24,19 +24,19 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
+// Modified by Xiang Zhang, 2026
+// Additional changes licensed under the MIT License
 #include "parser.h"
 
 namespace stabilizer::parser {
 
 KEYWORD Parser::attemptParseKeywords() {
-    if (*bufptr == ':') {
-        // :id
-        return parseKeyword();
-    }
-    else {
-        return KEYWORD::KW_NULL;
-    }
+  if (*bufptr == ':') {
+    // :id
+    return parseKeyword();
+  } else {
+    return KEYWORD::KW_NULL;
+  }
 }
 
-}  // namespace stabilizer::parser
+} // namespace stabilizer::parser

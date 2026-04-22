@@ -7,7 +7,8 @@
  * This file is part of Bitwuzla under the MIT license. See COPYING for more
  * information at https://github.com/bitwuzla/bitwuzla/blob/main/COPYING
  */
-
+// Modified by Xiang Zhang, 2026
+// Additional changes licensed under the MIT License
 #ifndef BZLA_UTIL_GMP_UTILS_H_INCLUDED
 #define BZLA_UTIL_GMP_UTILS_H_INCLUDED
 
@@ -59,6 +60,6 @@ void mpz_fdiv_r_2exp_ull(mpz_t r, const mpz_t n, uint64_t b);
 
 void mpz_mul_2exp_ull(mpz_t rop, const mpz_t op1, uint64_t op2);
 
-}  // namespace stabilizer::util
+} // namespace stabilizer::util
 
 #endif

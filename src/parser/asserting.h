@@ -24,20 +24,22 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
+// Modified by Xiang Zhang, 2026
+// Additional changes licensed under the MIT License
 #ifndef ASSERTING_HEADER
 #define ASSERTING_HEADER
 
 #include <iostream>
 
 #ifndef NDEBUG
-#define condAssert(cond, msg) \
-    do { \
-        if (!(cond)) { \
-            std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] " << msg << std::endl; \
-            std::abort(); \
-        } \
-    } while(0)
+#define condAssert(cond, msg)                                                  \
+  do {                                                                         \
+    if (!(cond)) {                                                             \
+      std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] " << msg           \
+                << std::endl;                                                  \
+      std::abort();                                                            \
+    }                                                                          \
+  } while (0)
 #else
 #define condAssert(cond, msg) ((void)0)
 #endif

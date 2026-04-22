@@ -24,6 +24,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+// Modified by Xiang Zhang, 2026
+// Additional changes licensed under the MIT License
 #ifndef VALUE_HEADER
 #define VALUE_HEADER
 #include <memory>
@@ -33,164 +36,158 @@
 
 namespace stabilizer::parser {
 // This class is used to store the value of a variable
-// It can be any kind of value, including a number, an interval, a string, a boolean, etc.
-enum ValueType {
-    UNKNOWN,
-    STRING,
-    NUMBER,
-    INTERVAL,
-    BOOLEAN,
-    BV,
-    FP,
-    ARRAY
-};
+// It can be any kind of value, including a number, an interval, a string, a
+// boolean, etc.
+enum ValueType { UNKNOWN, STRING, NUMBER, INTERVAL, BOOLEAN, BV, FP, ARRAY };
 
 class Value {
-  public:
-    Value();
-    Value(const Value &other);
-    Value &operator=(const Value &other);
-    ~Value();
+public:
+  Value();
+  Value(const Value &other);
+  Value &operator=(const Value &other);
+  ~Value();
 
-    // constructor
-    Value(const std::string &string_value);
-    Value(const Number &number_value);
-    Value(const Interval &interval_value);
-    Value(const bool &boolean_value);
-    Value(const ValueType &value_type);  // empty value
+  // constructor
+  Value(const std::string &string_value);
+  Value(const Number &number_value);
+  Value(const Interval &interval_value);
+  Value(const bool &boolean_value);
+  Value(const ValueType &value_type); // empty value
 
-    void setValue(const std::string &string_value);
-    void setValue(const Number &number_value);
-    void setValue(const Interval &interval_value);
-    void setValue(const bool &boolean_value);
+  void setValue(const std::string &string_value);
+  void setValue(const Number &number_value);
+  void setValue(const Interval &interval_value);
+  void setValue(const bool &boolean_value);
 
-    ValueType getType() const;
-    std::string getStringValue() const;
-    Number getNumberValue() const;
-    Interval getIntervalValue() const;
-    bool getBooleanValue() const;
+  ValueType getType() const;
+  std::string getStringValue() const;
+  Number getNumberValue() const;
+  Interval getIntervalValue() const;
+  bool getBooleanValue() const;
 
-    // Assignment operators for different types
-    Value &operator=(const std::string &string_value);
-    Value &operator=(const Number &number_value);
-    Value &operator=(const Interval &interval_value);
-    Value &operator=(const bool &boolean_value);
+  // Assignment operators for different types
+  Value &operator=(const std::string &string_value);
+  Value &operator=(const Number &number_value);
+  Value &operator=(const Interval &interval_value);
+  Value &operator=(const bool &boolean_value);
 
-    // all the operators are defined in the number, interval, string, bool, bv, fp, array
+  // all the operators are defined in the number, interval, string, bool, bv,
+  // fp, array
 
-    // all the comparison operators
-    bool operator==(const Value &other) const;
-    bool operator!=(const Value &other) const;
-    bool operator<(const Value &other) const;
-    bool operator<=(const Value &other) const;
-    bool operator>(const Value &other) const;
-    bool operator>=(const Value &other) const;
+  // all the comparison operators
+  bool operator==(const Value &other) const;
+  bool operator!=(const Value &other) const;
+  bool operator<(const Value &other) const;
+  bool operator<=(const Value &other) const;
+  bool operator>(const Value &other) const;
+  bool operator>=(const Value &other) const;
 
-    // all the assignment operators
-    Value &operator+=(const Value &other);
-    Value &operator-=(const Value &other);
-    Value &operator*=(const Value &other);
-    Value &operator/=(const Value &other);
-    Value &operator%=(const Value &other);
-    Value &operator^=(const Value &other);
-    Value &operator&=(const Value &other);
-    Value &operator|=(const Value &other);
-    Value &operator<<=(const Value &other);
-    Value &operator>>=(const Value &other);
-    Value &operator++();
-    Value &operator--();
-    Value operator++(int);
-    Value operator--(int);
+  // all the assignment operators
+  Value &operator+=(const Value &other);
+  Value &operator-=(const Value &other);
+  Value &operator*=(const Value &other);
+  Value &operator/=(const Value &other);
+  Value &operator%=(const Value &other);
+  Value &operator^=(const Value &other);
+  Value &operator&=(const Value &other);
+  Value &operator|=(const Value &other);
+  Value &operator<<=(const Value &other);
+  Value &operator>>=(const Value &other);
+  Value &operator++();
+  Value &operator--();
+  Value operator++(int);
+  Value operator--(int);
 
-    // all the logical operators are defined in the bool
-    bool operator&&(const Value &other) const;
-    bool operator||(const Value &other) const;
-    bool operator!() const;
+  // all the logical operators are defined in the bool
+  bool operator&&(const Value &other) const;
+  bool operator||(const Value &other) const;
+  bool operator!() const;
 
-    // all arithmetic operators are defined in the number
-    Value operator+(const Value &other) const;
-    Value operator-(const Value &other) const;
-    Value operator*(const Value &other) const;
-    Value operator/(const Value &other) const;
-    Value operator%(const Value &other) const;
-    Value operator^(const Value &other) const;
-    Value operator&(const Value &other) const;
-    Value operator|(const Value &other) const;
-    Value operator~() const;
-    Value operator<<(const Value &other) const;
-    Value operator>>(const Value &other) const;
+  // all arithmetic operators are defined in the number
+  Value operator+(const Value &other) const;
+  Value operator-(const Value &other) const;
+  Value operator*(const Value &other) const;
+  Value operator/(const Value &other) const;
+  Value operator%(const Value &other) const;
+  Value operator^(const Value &other) const;
+  Value operator&(const Value &other) const;
+  Value operator|(const Value &other) const;
+  Value operator~() const;
+  Value operator<<(const Value &other) const;
+  Value operator>>(const Value &other) const;
 
-    // all arithmetic operators are defined in the number
-    Value neg() const;
-    Value abs() const;
-    Value sqrt() const;
-    Value safeSqrt() const;
-    Value pow(const Value &other) const;
-    Value exp() const;
-    Value ln() const;
-    Value lg() const;
-    Value lb() const;
-    Value log(const Value &other) const;
-    Value ceil() const;
-    Value floor() const;
-    Value round() const;
-    Value sin() const;
-    Value cos() const;
-    Value tan() const;
-    Value cot() const;
-    Value sec() const;
-    Value csc() const;
-    Value asin() const;
-    Value acos() const;
-    Value atan() const;
-    Value acot() const;
-    Value asec() const;
-    Value acsc() const;
-    Value atan2(const Value &other) const;
-    Value sinh() const;
-    Value cosh() const;
-    Value tanh() const;
-    Value coth() const;
-    Value sech() const;
-    Value csch() const;
-    Value asinh() const;
-    Value acosh() const;
-    Value atanh() const;
-    Value acoth() const;
-    Value asech() const;
-    Value acsch() const;
+  // all arithmetic operators are defined in the number
+  Value neg() const;
+  Value abs() const;
+  Value sqrt() const;
+  Value safeSqrt() const;
+  Value pow(const Value &other) const;
+  Value exp() const;
+  Value ln() const;
+  Value lg() const;
+  Value lb() const;
+  Value log(const Value &other) const;
+  Value ceil() const;
+  Value floor() const;
+  Value round() const;
+  Value sin() const;
+  Value cos() const;
+  Value tan() const;
+  Value cot() const;
+  Value sec() const;
+  Value csc() const;
+  Value asin() const;
+  Value acos() const;
+  Value atan() const;
+  Value acot() const;
+  Value asec() const;
+  Value acsc() const;
+  Value atan2(const Value &other) const;
+  Value sinh() const;
+  Value cosh() const;
+  Value tanh() const;
+  Value coth() const;
+  Value sech() const;
+  Value csch() const;
+  Value asinh() const;
+  Value acosh() const;
+  Value atanh() const;
+  Value acoth() const;
+  Value asech() const;
+  Value acsch() const;
 
-    // all the string operators are defined in the string
-    Value concatStr(const Value &other) const;  // renamed from 'concat'
-    Value substr(const Value &start, const Value &end) const;
-    Value repeatStr(const Value &other) const;                   // renamed from 'repeat'
-    Value replace(const Value &old, const Value &newVal) const;  // renamed parameter 'new' as it's a C++ keyword
-    Value split(const Value &delimiter) const;                   // array is also a value
-    Value join(const Value &delimiter) const;
-    Value reverse() const;
-    Value sortStr() const;  // renamed from 'sort' to avoid conflict with STL
-    Value unique() const;
-    Value trim() const;
-    Value ltrim() const;
-    Value rtrim() const;
-    Value toLower() const;
-    Value toUpper() const;
-    Value toNumber() const;
-    Value toBoolean() const;
-    Value toBV() const;
-    Value toFP() const;
-    Value toArray() const;
+  // all the string operators are defined in the string
+  Value concatStr(const Value &other) const; // renamed from 'concat'
+  Value substr(const Value &start, const Value &end) const;
+  Value repeatStr(const Value &other) const; // renamed from 'repeat'
+  Value replace(const Value &old, const Value &newVal)
+      const; // renamed parameter 'new' as it's a C++ keyword
+  Value split(const Value &delimiter) const; // array is also a value
+  Value join(const Value &delimiter) const;
+  Value reverse() const;
+  Value sortStr() const; // renamed from 'sort' to avoid conflict with STL
+  Value unique() const;
+  Value trim() const;
+  Value ltrim() const;
+  Value rtrim() const;
+  Value toLower() const;
+  Value toUpper() const;
+  Value toNumber() const;
+  Value toBoolean() const;
+  Value toBV() const;
+  Value toFP() const;
+  Value toArray() const;
 
-    // print
-    std::string toString() const;
+  // print
+  std::string toString() const;
 
-  private:
-    std::string string_value;
-    Number number_value;
-    Interval interval_value;
-    bool boolean_value;
+private:
+  std::string string_value;
+  Number number_value;
+  Interval interval_value;
+  bool boolean_value;
 
-    ValueType value_type;
+  ValueType value_type;
 };
 
 std::shared_ptr<Value> newValue(const std::string &string_value);
@@ -205,5 +202,5 @@ std::shared_ptr<Value> newValue(const long &long_value);
 std::shared_ptr<Value> newValue(const short &short_value);
 std::shared_ptr<Value> newValue(const char &char_value);
 
-}  // namespace stabilizer::parser
+} // namespace stabilizer::parser
 #endif
