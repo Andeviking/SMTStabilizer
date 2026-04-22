@@ -18,7 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-
 #include "kernel.h"
 
 #include <algorithm>
@@ -150,7 +149,7 @@ void Kernel::propagate(const std::vector<size_t> &processing) {
     // for (const auto& node : processing)
     //     pre_hash_table.at(node) = d_hash_table.at(node);
     // std::random_device rd;
-    // std::mt19937 gen(rd());  // 或 std::mt19937 gen(12345); 固定种子便于复现
+    // std::mt19937 gen(rd());
     // std::vector<size_t> v(processing);
     // std::shuffle(v.begin(), v.end(), gen);
     // for (const auto& node : v) {

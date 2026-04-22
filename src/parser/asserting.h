@@ -32,14 +32,14 @@
 #include <iostream>
 
 #ifndef NDEBUG
-#define condAssert(cond, msg)                                                  \
-  do {                                                                         \
-    if (!(cond)) {                                                             \
-      std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] " << msg           \
-                << std::endl;                                                  \
-      std::abort();                                                            \
-    }                                                                          \
-  } while (0)
+#define condAssert(cond, msg)                                              \
+    do {                                                                   \
+        if (!(cond)) {                                                     \
+            std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] " << msg \
+                      << std::endl;                                        \
+            std::abort();                                                  \
+        }                                                                  \
+    } while (0)
 #else
 #define condAssert(cond, msg) ((void)0)
 #endif

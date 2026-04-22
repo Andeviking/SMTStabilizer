@@ -35,344 +35,340 @@
 
 namespace stabilizer::parser {
 // common types
-enum class State { UNKNOWN = -1, UNSAT, SAT };
+enum class State { UNKNOWN = -1,
+                   UNSAT,
+                   SAT };
 
 enum class NODE_KIND {
-  NT_UNKNOWN = 0,
-  NT_ERROR,
-  NT_NULL,
-  NT_UF_NAME,
+    NT_UNKNOWN = 0,
+    NT_ERROR,
+    NT_NULL,
+    NT_UF_NAME,
 
-  NT_PATTERN,
-  NT_NO_PATTERN,
-  NT_WEIGHT,
-  NT_ATTRIBUTE,
+    NT_PATTERN,
+    NT_NO_PATTERN,
+    NT_WEIGHT,
+    NT_ATTRIBUTE,
 
-  // CONSTANT / VARIABLE (not in parseOper)
-  NT_CONST,
-  NT_VAR,
-  NT_CONST_TRUE,
-  NT_CONST_FALSE,
-  NT_TEMP_VAR,
-  NT_CONST_ARRAY,
-  NT_PLACEHOLDER_VAR,
+    // CONSTANT / VARIABLE (not in parseOper)
+    NT_CONST,
+    NT_VAR,
+    NT_CONST_TRUE,
+    NT_CONST_FALSE,
+    NT_TEMP_VAR,
+    NT_CONST_ARRAY,
+    NT_PLACEHOLDER_VAR,
 
-  // === START OF PARSEOPER CONTINUOUS SECTION ===
-  // BOOLEAN OPERATORS (in parseOper)
-  NT_AND,
-  NT_OR,
-  NT_NOT,
-  NT_IMPLIES,
-  NT_XOR,
+    // === START OF PARSEOPER CONTINUOUS SECTION ===
+    // BOOLEAN OPERATORS (in parseOper)
+    NT_AND,
+    NT_OR,
+    NT_NOT,
+    NT_IMPLIES,
+    NT_XOR,
 
-  // CORE OPERATORS (in parseOper)
-  NT_EQ,
-  NT_DISTINCT,
-  NT_ITE,
+    // CORE OPERATORS (in parseOper)
+    NT_EQ,
+    NT_DISTINCT,
+    NT_ITE,
 
-  // ARITHMETIC COMMON OPERATORS (in parseOper)
-  NT_ADD,
-  NT_NEG,
-  NT_SUB,
-  NT_MUL,
-  NT_DT_FUN_APPLY, // Datatype function application (constructors/selectors),
-                   // distinct from UF
-  NT_IAND,
-  NT_POW2,
-  NT_POW,
-  NT_DIV_INT,
-  NT_DIV_REAL,
-  NT_MOD,
-  NT_ABS,
-  NT_SQRT,
-  NT_SAFESQRT,
-  NT_CEIL,
-  NT_FLOOR,
-  NT_ROUND,
+    // ARITHMETIC COMMON OPERATORS (in parseOper)
+    NT_ADD,
+    NT_NEG,
+    NT_SUB,
+    NT_MUL,
+    NT_DT_FUN_APPLY,  // Datatype function application (constructors/selectors),
+                      // distinct from UF
+    NT_IAND,
+    NT_POW2,
+    NT_POW,
+    NT_DIV_INT,
+    NT_DIV_REAL,
+    NT_MOD,
+    NT_ABS,
+    NT_SQRT,
+    NT_SAFESQRT,
+    NT_CEIL,
+    NT_FLOOR,
+    NT_ROUND,
 
-  // TRANSCENDENTAL ARITHMETIC (in parseOper)
-  NT_EXP,
-  NT_LN,
-  NT_LG,
-  NT_LB,
-  NT_LOG,
-  NT_SIN,
-  NT_COS,
-  NT_TAN,
-  NT_COT,
-  NT_SEC,
-  NT_CSC,
-  NT_ASIN,
-  NT_ACOS,
-  NT_ATAN,
-  NT_ACOT,
-  NT_ASEC,
-  NT_ACSC,
-  NT_SINH,
-  NT_COSH,
-  NT_TANH,
-  NT_ASECH,
-  NT_ACSCH,
-  NT_ACOTH,
-  NT_ATAN2,
-  NT_ASINH,
-  NT_ACOSH,
-  NT_ATANH,
-  NT_SECH,
-  NT_CSCH,
-  NT_COTH,
+    // TRANSCENDENTAL ARITHMETIC (in parseOper)
+    NT_EXP,
+    NT_LN,
+    NT_LG,
+    NT_LB,
+    NT_LOG,
+    NT_SIN,
+    NT_COS,
+    NT_TAN,
+    NT_COT,
+    NT_SEC,
+    NT_CSC,
+    NT_ASIN,
+    NT_ACOS,
+    NT_ATAN,
+    NT_ACOT,
+    NT_ASEC,
+    NT_ACSC,
+    NT_SINH,
+    NT_COSH,
+    NT_TANH,
+    NT_ASECH,
+    NT_ACSCH,
+    NT_ACOTH,
+    NT_ATAN2,
+    NT_ASINH,
+    NT_ACOSH,
+    NT_ATANH,
+    NT_SECH,
+    NT_CSCH,
+    NT_COTH,
 
-  // ARITHMETIC COMPARISON (in parseOper)
-  NT_LE,
-  NT_LT,
-  NT_GE,
-  NT_GT,
+    // ARITHMETIC COMPARISON (in parseOper)
+    NT_LE,
+    NT_LT,
+    NT_GE,
+    NT_GT,
 
-  // ARITHMETIC CONVERSION (in parseOper)
-  NT_TO_INT,
-  NT_TO_REAL,
+    // ARITHMETIC CONVERSION (in parseOper)
+    NT_TO_INT,
+    NT_TO_REAL,
 
-  // ARITHMETIC PROPERTIES (in parseOper)
-  NT_IS_INT,
-  NT_IS_DIVISIBLE,
-  NT_IS_PRIME,
-  NT_IS_EVEN,
-  NT_IS_ODD,
+    // ARITHMETIC PROPERTIES (in parseOper)
+    NT_IS_INT,
+    NT_IS_DIVISIBLE,
+    NT_IS_PRIME,
+    NT_IS_EVEN,
+    NT_IS_ODD,
 
-  // ARITHMETIC FUNCTIONS (in parseOper)
-  NT_GCD,
-  NT_LCM,
-  NT_FACT,
+    // ARITHMETIC FUNCTIONS (in parseOper)
+    NT_GCD,
+    NT_LCM,
+    NT_FACT,
 
-  // BITVECTOR OPERATORS (in parseOper)
-  NT_BV_NOT,
-  NT_BV_NEG,
-  NT_BV_AND,
-  NT_BV_OR,
-  NT_BV_XOR,
-  NT_BV_NAND,
-  NT_BV_NOR,
-  NT_BV_XNOR,
-  NT_BV_COMP,
-  NT_BV_ADD,
-  NT_BV_SUB,
-  NT_BV_MUL,
-  NT_BV_UDIV,
-  NT_BV_SDIV,
-  NT_BV_UREM,
-  NT_BV_SREM,
-  NT_BV_UMOD,
-  NT_BV_SMOD,
-  NT_BV_SHL,
-  NT_BV_LSHR,
-  NT_BV_ASHR,
-  NT_BV_ULT,
-  NT_BV_ULE,
-  NT_BV_UGT,
-  NT_BV_UGE,
-  NT_BV_SLT,
-  NT_BV_SLE,
-  NT_BV_SGT,
-  NT_BV_SGE,
-  NT_BV_CONCAT,
-  NT_BV_TO_NAT,
-  NT_NAT_TO_BV,
-  NT_BV_TO_INT,
-  // BITVECTOR FUNCTIONS (in parseOper with args and params)
-  NT_INT_TO_BV,
-  NT_UBV_TO_INT,
-  NT_SBV_TO_INT,
-  NT_BV_EXTRACT,
-  NT_BV_REPEAT,
-  NT_BV_ZERO_EXT,
-  NT_BV_SIGN_EXT,
-  NT_BV_ROTATE_LEFT,
-  NT_BV_ROTATE_RIGHT,
+    // BITVECTOR OPERATORS (in parseOper)
+    NT_BV_NOT,
+    NT_BV_NEG,
+    NT_BV_AND,
+    NT_BV_OR,
+    NT_BV_XOR,
+    NT_BV_NAND,
+    NT_BV_NOR,
+    NT_BV_XNOR,
+    NT_BV_COMP,
+    NT_BV_ADD,
+    NT_BV_SUB,
+    NT_BV_MUL,
+    NT_BV_UDIV,
+    NT_BV_SDIV,
+    NT_BV_UREM,
+    NT_BV_SREM,
+    NT_BV_UMOD,
+    NT_BV_SMOD,
+    NT_BV_SHL,
+    NT_BV_LSHR,
+    NT_BV_ASHR,
+    NT_BV_ULT,
+    NT_BV_ULE,
+    NT_BV_UGT,
+    NT_BV_UGE,
+    NT_BV_SLT,
+    NT_BV_SLE,
+    NT_BV_SGT,
+    NT_BV_SGE,
+    NT_BV_CONCAT,
+    NT_BV_TO_NAT,
+    NT_NAT_TO_BV,
+    NT_BV_TO_INT,
+    // BITVECTOR FUNCTIONS (in parseOper with args and params)
+    NT_INT_TO_BV,
+    NT_UBV_TO_INT,
+    NT_SBV_TO_INT,
+    NT_BV_EXTRACT,
+    NT_BV_REPEAT,
+    NT_BV_ZERO_EXT,
+    NT_BV_SIGN_EXT,
+    NT_BV_ROTATE_LEFT,
+    NT_BV_ROTATE_RIGHT,
 
-  // FLOATING POINT OPERATORS (in parseOper)
-  NT_FP_ADD,
-  NT_FP_SUB,
-  NT_FP_MUL,
-  NT_FP_DIV,
-  NT_FP_ABS,
-  NT_FP_NEG,
-  NT_FP_REM,
-  NT_FP_FMA,
-  NT_FP_SQRT,
-  NT_FP_ROUND_TO_INTEGRAL,
-  NT_FP_MIN,
-  NT_FP_MAX,
-  NT_FP_LE,
-  NT_FP_LT,
-  NT_FP_GE,
-  NT_FP_GT,
-  NT_FP_EQ,
-  NT_FP_TO_UBV,
-  NT_FP_TO_SBV,
-  NT_FP_TO_REAL,
-  NT_FP_TO_FP,
-  NT_FP_TO_FP_UNSIGNED,
-  NT_FP_IS_NORMAL,
-  NT_FP_IS_SUBNORMAL,
-  NT_FP_IS_ZERO,
-  NT_FP_IS_INF,
-  NT_FP_IS_NAN,
-  NT_FP_IS_NEG,
-  NT_FP_IS_POS,
+    // FLOATING POINT OPERATORS (in parseOper)
+    NT_FP_ADD,
+    NT_FP_SUB,
+    NT_FP_MUL,
+    NT_FP_DIV,
+    NT_FP_ABS,
+    NT_FP_NEG,
+    NT_FP_REM,
+    NT_FP_FMA,
+    NT_FP_SQRT,
+    NT_FP_ROUND_TO_INTEGRAL,
+    NT_FP_MIN,
+    NT_FP_MAX,
+    NT_FP_LE,
+    NT_FP_LT,
+    NT_FP_GE,
+    NT_FP_GT,
+    NT_FP_EQ,
+    NT_FP_TO_UBV,
+    NT_FP_TO_SBV,
+    NT_FP_TO_REAL,
+    NT_FP_TO_FP,
+    NT_FP_TO_FP_UNSIGNED,
+    NT_FP_IS_NORMAL,
+    NT_FP_IS_SUBNORMAL,
+    NT_FP_IS_ZERO,
+    NT_FP_IS_INF,
+    NT_FP_IS_NAN,
+    NT_FP_IS_NEG,
+    NT_FP_IS_POS,
 
-  // ARRAY OPERATORS (in parseOper)
-  NT_SELECT,
-  NT_STORE,
+    // ARRAY OPERATORS (in parseOper)
+    NT_SELECT,
+    NT_STORE,
 
-  // DATATYPE OPERATORS (in parseOper)
-  NT_DT_TESTER,  // ((_ is C) t)
-  NT_DT_UPDATER, // ((_ update S) t u)
+    // DATATYPE OPERATORS (in parseOper)
+    NT_DT_TESTER,   // ((_ is C) t)
+    NT_DT_UPDATER,  // ((_ update S) t u)
 
-  // TUPLE OPERATORS (in parseOper)
-  NT_TUPLE_CONSTRUCTOR, // (tuple ...)
-  NT_TUPLE_UNIT,        // tuple.unit
-  NT_TUPLE_SELECT,      // ((_ tuple.select i) t)
-  NT_TUPLE_UPDATE,      // ((_ tuple.update i) t u)
-  NT_TUPLE_PROJECT,     // ((_ tuple.project i1 ... in) t)
+    // TUPLE OPERATORS (in parseOper)
+    NT_TUPLE_CONSTRUCTOR,  // (tuple ...)
+    NT_TUPLE_UNIT,         // tuple.unit
+    NT_TUPLE_SELECT,       // ((_ tuple.select i) t)
+    NT_TUPLE_UPDATE,       // ((_ tuple.update i) t u)
+    NT_TUPLE_PROJECT,      // ((_ tuple.project i1 ... in) t)
 
-  // STRING OPERATORS (in parseOper)
-  NT_STR_LEN,
-  NT_STR_CONCAT,
-  NT_STR_SUBSTR,
-  NT_STR_INDEXOF,
-  NT_STR_CHARAT,
-  NT_STR_UPDATE,
-  NT_STR_REPLACE,
-  NT_STR_REPLACE_ALL,
-  NT_STR_REPLACE_REG,
-  NT_STR_REPLACE_REG_ALL,
-  NT_STR_INDEXOF_REG,
-  NT_STR_TO_LOWER,
-  NT_STR_TO_UPPER,
-  NT_STR_REV,
-  NT_STR_SPLIT,
-  NT_STR_SPLIT_AT,
-  NT_STR_SPLIT_REST,
-  NT_STR_NUM_SPLITS,
-  NT_STR_SPLIT_AT_RE,
-  NT_STR_SPLIT_REST_RE,
-  NT_STR_NUM_SPLITS_RE,
-  NT_STR_LT,
-  NT_STR_LE,
-  NT_STR_GT,
-  NT_STR_GE,
-  NT_STR_IN_REG,
-  NT_STR_CONTAINS,
-  NT_STR_IS_DIGIT,
-  NT_STR_PREFIXOF,
-  NT_STR_SUFFIXOF,
-  NT_STR_FROM_INT,
-  NT_STR_TO_INT,
-  NT_STR_TO_REG,
-  NT_STR_TO_CODE,
-  NT_STR_FROM_CODE,
+    // STRING OPERATORS (in parseOper)
+    NT_STR_LEN,
+    NT_STR_CONCAT,
+    NT_STR_SUBSTR,
+    NT_STR_INDEXOF,
+    NT_STR_CHARAT,
+    NT_STR_UPDATE,
+    NT_STR_REPLACE,
+    NT_STR_REPLACE_ALL,
+    NT_STR_REPLACE_REG,
+    NT_STR_REPLACE_REG_ALL,
+    NT_STR_INDEXOF_REG,
+    NT_STR_TO_LOWER,
+    NT_STR_TO_UPPER,
+    NT_STR_REV,
+    NT_STR_SPLIT,
+    NT_STR_SPLIT_AT,
+    NT_STR_SPLIT_REST,
+    NT_STR_NUM_SPLITS,
+    NT_STR_SPLIT_AT_RE,
+    NT_STR_SPLIT_REST_RE,
+    NT_STR_NUM_SPLITS_RE,
+    NT_STR_LT,
+    NT_STR_LE,
+    NT_STR_GT,
+    NT_STR_GE,
+    NT_STR_IN_REG,
+    NT_STR_CONTAINS,
+    NT_STR_IS_DIGIT,
+    NT_STR_PREFIXOF,
+    NT_STR_SUFFIXOF,
+    NT_STR_FROM_INT,
+    NT_STR_TO_INT,
+    NT_STR_TO_REG,
+    NT_STR_TO_CODE,
+    NT_STR_FROM_CODE,
 
-  // REGULAR EXPRESSION OPERATORS (in parseOper)
-  NT_REG_CONCAT,
-  NT_REG_UNION,
-  NT_REG_INTER,
-  NT_REG_DIFF,
-  NT_REG_STAR,
-  NT_REG_PLUS,
-  NT_REG_OPT,
-  NT_REG_RANGE,
-  NT_REG_REPEAT,
-  NT_REG_COMPLEMENT,
+    // REGULAR EXPRESSION OPERATORS (in parseOper)
+    NT_REG_CONCAT,
+    NT_REG_UNION,
+    NT_REG_INTER,
+    NT_REG_DIFF,
+    NT_REG_STAR,
+    NT_REG_PLUS,
+    NT_REG_OPT,
+    NT_REG_RANGE,
+    NT_REG_REPEAT,
+    NT_REG_COMPLEMENT,
 
-  // STRING RE FUNCTIONS (in parseOper with args and params)
-  NT_REG_LOOP,
+    // STRING RE FUNCTIONS (in parseOper with args and params)
+    NT_REG_LOOP,
 
-  // FUNCTION OPERATORS (in parseOper)
-  NT_FUNC_APPLY,
-  NT_FUNC_DEC,
-  NT_FUNC_DEF,
+    // FUNCTION OPERATORS (in parseOper)
+    NT_FUNC_APPLY,
+    NT_FUNC_DEC,
+    NT_FUNC_DEF,
 
-  // FUNCTION RECURSION OPERATORS (in parseOper)
-  NT_FUNC_REC,
-  NT_FUNC_REC_APPLY,
+    // FUNCTION RECURSION OPERATORS (in parseOper)
+    NT_FUNC_REC,
+    NT_FUNC_REC_APPLY,
 
-  // === END OF PARSEOPER CONTINUOUS SECTION ===
-  // BITVECTOR OVERFLOW OPERATIONS
-  NT_BV_NEGO,
-  NT_BV_UADDO,
-  NT_BV_SADDO,
-  NT_BV_UMULO,
-  NT_BV_SMULO,
-  NT_BV_UDIVO,
-  NT_BV_SDIVO,
-  NT_BV_UREMO,
-  NT_BV_SREMO,
-  NT_BV_UMODO,
-  NT_BV_SMODO,
+    // === END OF PARSEOPER CONTINUOUS SECTION ===
+    // BITVECTOR OVERFLOW OPERATIONS
+    NT_BV_NEGO,
+    NT_BV_UADDO,
+    NT_BV_SADDO,
+    NT_BV_UMULO,
+    NT_BV_SMULO,
+    NT_BV_UDIVO,
+    NT_BV_SDIVO,
+    NT_BV_UREMO,
+    NT_BV_SREMO,
+    NT_BV_UMODO,
+    NT_BV_SMODO,
 
-  // TYPES NOT IN PARSEOPER
-  NT_EQ_BOOL,
-  NT_EQ_OTHER,
-  NT_DISTINCT_BOOL,
-  NT_DISTINCT_OTHER,
-  NT_UF_APPLY,
+    // TYPES NOT IN PARSEOPER
+    NT_EQ_BOOL,
+    NT_EQ_OTHER,
+    NT_DISTINCT_BOOL,
+    NT_DISTINCT_OTHER,
+    NT_UF_APPLY,
 
-  // ARITHMETIC CONSTANTS
-  NT_CONST_PI,
-  NT_CONST_E,
-  NT_INFINITY,
-  NT_NAN,
-  NT_EPSILON,
-  NT_POS_INFINITY,
-  NT_NEG_INFINITY,
-  NT_POS_EPSILON,
-  NT_NEG_EPSILON,
+    // ARITHMETIC CONSTANTS
+    NT_CONST_PI,
+    NT_CONST_E,
+    NT_INFINITY,
+    NT_NAN,
+    NT_EPSILON,
+    NT_POS_INFINITY,
+    NT_NEG_INFINITY,
+    NT_POS_EPSILON,
+    NT_NEG_EPSILON,
 
-  // STRING RE CONSTANTS
-  NT_REG_NONE,
-  NT_REG_ALL,
-  NT_REG_ALLCHAR,
+    // STRING RE CONSTANTS
+    NT_REG_NONE,
+    NT_REG_ALL,
+    NT_REG_ALLCHAR,
 
-  // INTERVAL
-  NT_MAX,
-  NT_MIN,
+    // INTERVAL
+    NT_MAX,
+    NT_MIN,
 
-  // LET (CHAIN)
-  NT_LET,
-  NT_LET_CHAIN,
+    // LET (CHAIN)
+    NT_LET,
+    NT_LET_CHAIN,
 
-  // LET BIND VAR (LIST)
-  NT_LET_BIND_VAR,
-  NT_LET_BIND_VAR_LIST,
+    // LET BIND VAR (LIST)
+    NT_LET_BIND_VAR,
+    NT_LET_BIND_VAR_LIST,
 
-  // QUANTIFIERS
-  NT_FORALL,
-  NT_EXISTS,
-  NT_QUANT_VAR,
+    // QUANTIFIERS
+    NT_FORALL,
+    NT_EXISTS,
+    NT_QUANT_VAR,
 
-  // FUNC PARAMETERS
-  NT_FUNC_PARAM,
+    // FUNC PARAMETERS
+    NT_FUNC_PARAM,
 
-  // ROOT OBJECT
-  NT_ROOT_OBJ,
-  NT_ROOT_OF_WITH_INTERVAL,
+    // ROOT OBJECT
+    NT_ROOT_OBJ,
+    NT_ROOT_OF_WITH_INTERVAL,
 
-  // NUM_KINDS
-  NUM_KINDS
+    // NUM_KINDS
+    NUM_KINDS
 };
 // NOTE: the last one is the number of kinds
 constexpr size_t NUM_KINDS = static_cast<size_t>(NODE_KIND::NUM_KINDS);
 const std::unordered_set<NODE_KIND> static_kinds = {
-    NODE_KIND::NT_NULL,         NODE_KIND::NT_UNKNOWN,
-    NODE_KIND::NT_ERROR,        NODE_KIND::NT_CONST_TRUE,
-    NODE_KIND::NT_CONST_FALSE,  NODE_KIND::NT_CONST_E,
-    NODE_KIND::NT_CONST_PI,     NODE_KIND::NT_NAN,
-    NODE_KIND::NT_EPSILON,      NODE_KIND::NT_POS_EPSILON,
-    NODE_KIND::NT_NEG_EPSILON,  NODE_KIND::NT_INFINITY,
-    NODE_KIND::NT_POS_INFINITY, NODE_KIND::NT_NEG_INFINITY};
+    NODE_KIND::NT_NULL, NODE_KIND::NT_UNKNOWN, NODE_KIND::NT_ERROR, NODE_KIND::NT_CONST_TRUE, NODE_KIND::NT_CONST_FALSE, NODE_KIND::NT_CONST_E, NODE_KIND::NT_CONST_PI, NODE_KIND::NT_NAN, NODE_KIND::NT_EPSILON, NODE_KIND::NT_POS_EPSILON, NODE_KIND::NT_NEG_EPSILON, NODE_KIND::NT_INFINITY, NODE_KIND::NT_POS_INFINITY, NODE_KIND::NT_NEG_INFINITY};
 // only used in preserving let mode
 const std::string PRESERVING_LET_BIND_VAR_SUFFIX =
-    "_stabilizer::parser_Preserving_Let_Bind_Var_Suffix_"; // +k
+    "_stabilizer::parser_Preserving_Let_Bind_Var_Suffix_";  // +k
 const std::unordered_map<std::string, NODE_KIND> kind_key_map = {
     {"true", NODE_KIND::NT_CONST_TRUE},
     {"false", NODE_KIND::NT_CONST_FALSE},
@@ -627,9 +623,9 @@ const std::unordered_map<std::string, NODE_KIND> oper_key_map = {
     {"root-of-with-interval", NODE_KIND::NT_ROOT_OF_WITH_INTERVAL}};
 
 std::string kindToString(const NODE_KIND &nk);
-NODE_KIND getFlipKind(const NODE_KIND &nk);    // > -> <, < -> >, etc.
-NODE_KIND getNegatedKind(const NODE_KIND &nk); // > -> <=, < -> >=, etc.
+NODE_KIND getFlipKind(const NODE_KIND &nk);     // > -> <, < -> >, etc.
+NODE_KIND getNegatedKind(const NODE_KIND &nk);  // > -> <=, < -> >=, etc.
 NODE_KIND getOperKind(const std::string &s);
-} // namespace stabilizer::parser
+}  // namespace stabilizer::parser
 
 #endif

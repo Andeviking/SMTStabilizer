@@ -36,7 +36,7 @@ using Sort = std::shared_ptr<stabilizer::parser::Sort>;
 
 class NodeManager {
   public:
-    NodeManager(stabilizer::parser::Parser& parser) : m_parser(parser) {}
+    NodeManager(stabilizer::parser::Parser &parser) : m_parser(parser) {}
 
     // Node mk_term(const stabilizer::parser::NODE_KIND& kind, const std::vector<Node>& children = {}, const std::vector<Node>& indices = {});
 
@@ -44,24 +44,24 @@ class NodeManager {
 
     std::string to_string();
 
-    void replace_assertions(const std::vector<Node>& new_assertions) {
+    void replace_assertions(const std::vector<Node> &new_assertions) {
         m_parser.replaceAssertions(new_assertions);
         // m_parser.replaceAssertions({m_parser.mkAnd(new_assertions)});
     }
 
-    std::unordered_map<std::string, size_t>& getVarNames() {
+    std::unordered_map<std::string, size_t> &getVarNames() {
         return m_parser.getVarNames();
     }
 
-    std::unordered_map<std::string, size_t>& getTempVarNames() {
+    std::unordered_map<std::string, size_t> &getTempVarNames() {
         return m_parser.getTempVarNames();
     }
 
-    std::unordered_map<std::string, std::shared_ptr<stabilizer::parser::DAGNode>>& getFunKeyMap() {
+    std::unordered_map<std::string, std::shared_ptr<stabilizer::parser::DAGNode>> &getFunKeyMap() {
         return m_parser.getFunKeyMap();
     }
 
-    std::vector<std::string>& getFunctionNames() {
+    std::vector<std::string> &getFunctionNames() {
         return m_parser.getFunctionNames();
     }
 
@@ -83,23 +83,23 @@ class NodeManager {
             m_parser.replaceAssertions(assertions);
     }
 
-    std::unordered_map<std::string, Sort>& getSortNames() {
+    std::unordered_map<std::string, Sort> &getSortNames() {
         return m_parser.getSortNames();
     }
 
-    Node mkUFVNode(const std::string& name, const Sort& sort) {
+    Node mkUFVNode(const std::string &name, const Sort &sort) {
         return m_parser.mkUFVNode(name, sort);
     }
 
-    std::vector<std::vector<parser::Parser::DTTypeDecl>>& getDatatypeBlocks() {
+    std::vector<std::vector<parser::Parser::DTTypeDecl>> &getDatatypeBlocks() {
         return m_parser.getDatatypeBlocks();
     }
 
-    Node mkAnd(const std::vector<Node>& children) {
+    Node mkAnd(const std::vector<Node> &children) {
         return m_parser.mkAnd(children);
     }
 
   private:
-    stabilizer::parser::Parser& m_parser;
+    stabilizer::parser::Parser &m_parser;
 };
 }  // namespace stabilizer::node

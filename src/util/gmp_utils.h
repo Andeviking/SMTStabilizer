@@ -60,6 +60,6 @@ void mpz_fdiv_r_2exp_ull(mpz_t r, const mpz_t n, uint64_t b);
 
 void mpz_mul_2exp_ull(mpz_t rop, const mpz_t op1, uint64_t op2);
 
-} // namespace stabilizer::util
+}  // namespace stabilizer::util
 
 #endif

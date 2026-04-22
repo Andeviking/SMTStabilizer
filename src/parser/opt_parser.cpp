@@ -31,12 +31,13 @@
 namespace stabilizer::parser {
 
 KEYWORD Parser::attemptParseKeywords() {
-  if (*bufptr == ':') {
-    // :id
-    return parseKeyword();
-  } else {
-    return KEYWORD::KW_NULL;
-  }
+    if (*bufptr == ':') {
+        // :id
+        return parseKeyword();
+    }
+    else {
+        return KEYWORD::KW_NULL;
+    }
 }
 
-} // namespace stabilizer::parser
+}  // namespace stabilizer::parser
