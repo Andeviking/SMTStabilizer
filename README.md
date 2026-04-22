@@ -72,9 +72,7 @@ Prerequisites (examples; replace placeholders as needed):
 ## Contributing
 
 Contributions are welcome. Please open issues for bugs or feature requests and
-submit pull requests with clear descriptions and tests where applicable. See
-CONTRIBUTING.md for contribution guidelines (if present). If you would like
-me to add a CONTRIBUTING.md, I can scaffold one for you.
+submit pull requests with clear descriptions and tests where applicable.
 
 ## Security
 
