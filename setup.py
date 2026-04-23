@@ -25,13 +25,13 @@ import subprocess
 import sys
 import shutil
 import time
-import tempfile
 import urllib.request
+import urllib.parse
 import contextlib
 import zipfile
 import tarfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 # --------------- Colored printing utilities ----------------
 _COLORS = {
@@ -103,7 +103,7 @@ class ProgressPrinter:
 
 
 # --------------- File download ----------------
-def download_file(url: str, dest_dir: str, filename: Optional[str] = None,
+def download_file(url: str, dest_dir: Union[str, os.PathLike, Path], filename: Optional[str] = None,
                   retries: int = 3, timeout: int = 30, sha256: Optional[str] = None) -> Path:
     """
     Download a file to dest_dir and return the full path. Shows progress.
@@ -119,7 +119,7 @@ def download_file(url: str, dest_dir: str, filename: Optional[str] = None,
     dest_dir = Path(dest_dir)
     dest_dir.mkdir(parents=True, exist_ok=True)
     if not filename:
-        filename = Path(urllib.request.urlsplit(url).path).name or "downloaded.file"
+        filename = Path(urllib.parse.urlsplit(url).path).name or "downloaded.file"
     dest_path = dest_dir / filename
 
     # Resolve expected checksum if provided
@@ -196,6 +196,8 @@ def download_file(url: str, dest_dir: str, filename: Optional[str] = None,
 
                 # verify checksum if requested
                 if expected:
+                    # narrow optional type for static checkers (hasher created above when expected)
+                    assert hasher is not None
                     got = hasher.hexdigest()
                     if got != expected:
                         # remove bad file and raise to trigger retry logic
@@ -220,7 +222,7 @@ def download_file(url: str, dest_dir: str, filename: Optional[str] = None,
 
 
 # --------------- Extract archive ----------------
-def extract_archive(archive_path: str, dest_dir: str):
+def extract_archive(archive_path: Union[str, os.PathLike, Path], dest_dir: Union[str, os.PathLike, Path]):
     """
     Supports zip, tar, tar.gz, tgz, tar.bz2. Shows progress.
     """
@@ -291,7 +293,7 @@ def extract_archive(archive_path: str, dest_dir: str):
 
 
 # --------------- Copy directory ----------------
-def copy_folder(src: str, dst: str, patterns=None, overwrite: bool = False):
+def copy_folder(src: Union[str, os.PathLike, Path], dst: Union[str, os.PathLike, Path], patterns=None, overwrite: bool = False):
     """
     Copy all files in src that match the given patterns into dst, preserving their relative directory structure.
     - patterns: a single glob pattern string or a list of strings; defaults to "**/*" (matches all files).
@@ -372,12 +374,11 @@ def copy_folder(src: str, dst: str, patterns=None, overwrite: bool = False):
 
     printer.finish(f"Copied {copied}/{total_files} files", True)
 
-cache_dir = ""
-submodules_dir = ""
-include_dir = ""
-lib_dir = ""
+cache_dir: Path = Path()
+submodules_dir: Path = Path()
+include_dir: Path = Path()
+lib_dir: Path = Path()
 
-# ...existing code...
 def build_mpfr():
     """
     Download, extract, configure, build and install MPFR into the submodules prefix.
@@ -450,7 +451,6 @@ def build_mpfr():
             warn(f"Failed to copy libraries: {e}")
 
     info("MPFR build and installation complete.")
-# ...existing code...
 
 def build_gmp():
     """
