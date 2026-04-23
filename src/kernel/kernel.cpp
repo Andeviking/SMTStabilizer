@@ -320,10 +320,14 @@ void Kernel::rebuild_graph() {
 
 void Kernel::sort_propagate(std::unordered_map<std::string, node::Sort> &sort_key_map, std::vector<std::vector<parser::Parser::DTTypeDecl>> &datatype_blocks) {
     std::unordered_map<std::string, node::Sort> new_sort_key_map;
+    std::unordered_map<node::Sort, size_t> tmp_dts;
+    size_t _cnt = 0;
     for (auto &block : datatype_blocks) {
+        ++_cnt;
         for (size_t i = 0, isz = block.size(); i < isz; ++i) {
             auto &td = block.at(i);
             if (sort_key_map.find(td.name) != sort_key_map.end()) {
+                tmp_dts.emplace(sort_key_map.at(td.name), _cnt);
                 sort_key_map.erase(td.name);
             }
         }
@@ -365,6 +369,12 @@ void Kernel::sort_propagate(std::unordered_map<std::string, node::Sort> &sort_ke
     std::reverse(hash_table.begin(), hash_table.end());
     hash_table.resize(hash_table.size() + sort_idx.size(), 0);
     std::reverse(hash_table.begin(), hash_table.end());
+    for (const auto &[sort, index] : tmp_dts) {
+        if (sort_idx.find(sort) != sort_idx.end()) {
+            util::hash_combine(hash_table.at(sort_idx.at(sort)), index);
+            util::hash_combine(hash_table.at(sort_idx.at(sort)), index);
+        }
+    }
     std::vector<uint8_t> is_commutative(d_is_commutative);
     std::reverse(is_commutative.begin(), is_commutative.end());
     is_commutative.resize(is_commutative.size() + sort_idx.size(), false);
@@ -642,11 +652,32 @@ void Kernel::apply(node::NodeManager &nm) {
                         sd.name = "";
                         new_selectors.emplace_back(sd);
                     }
+                    else if (sd.sort->isDec() || sd.sort->isDatatype()) {
+                        sd.sort->setName("UNUSED_SORT");
+                        nm.getSortNames().emplace("UNUSED_SORT", sd.sort);
+                        sd.name = "";
+                        new_selectors.emplace_back(sd);
+                    }
                     else {
                         sd.name = "";
+                        new_selectors.emplace_back(sd);
                     }
                 }
-                cd.selectors.swap(new_selectors);
+
+                if (cd.name.empty()) {
+                    bool selected = false;
+                    for (const auto &sd : new_selectors) {
+                        if (!sd.name.empty()) {
+                            selected = true;
+                            cd.selectors.swap(new_selectors);
+                            break;
+                        }
+                    }
+                    if (!selected)
+                        continue;
+                }
+                else
+                    cd.selectors.swap(new_selectors);
                 // if (selected == false) {
                 //     cd.selectors.clear();
                 // }
@@ -718,7 +749,7 @@ void Kernel::apply(node::NodeManager &nm) {
             for (auto &cd : td.ctors) {
                 for (auto &sd : cd.selectors) {
                     if (sd.name.starts_with("VAR"))
-                        sd.name = "VAR" + std::to_string(idx++);
+                        sd.name = "DT_SEL" + std::to_string(idx++);
                 }
             }
             // std::sort(td.ctors.begin(), td.ctors.end(), [](const auto& a, const auto& b) {

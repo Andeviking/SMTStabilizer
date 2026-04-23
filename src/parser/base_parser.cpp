@@ -34,6 +34,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "parser.h"
@@ -2877,12 +2878,18 @@ Parser::rebuildLetBindings(const std::shared_ptr<DAGNode> &root) {
 std::string Parser::dumpSMT2() {
     std::stringstream ss;
 
-    for (const auto &s : parse_options)
-        ss << s << std::endl;
+    // [set-option]
+    // for (const auto &s : parse_options)
+    //     ss << s << std::endl;
     ss << "(set-logic " << options->getLogic() << ")" << std::endl;
 
     size_t sort_count = 0;
+    std::vector<std::pair<std::string, std::shared_ptr<Sort>>> sorts;
     for (const auto &[sort_name, sort_ptr] : sort_key_map) {
+        sorts.emplace_back(sort_name, sort_ptr);
+    }
+    std::sort(sorts.begin(), sorts.end(), [](const auto &a, const auto &b) { return a.first < b.first; });
+    for (const auto &[sort_name, sort_ptr] : sorts) {
         if (sort_ptr->isDec()) {
             // Skip sorts that are declared via datatypes
             // if (datatype_sort_names.find(sort_name) != datatype_sort_names.end()) {
