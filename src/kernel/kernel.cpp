@@ -792,10 +792,10 @@ void Kernel::apply(node::NodeManager &nm) {
             d_nodes.at(i)->replace_children(children);
         }
 
-        std::vector<size_t> children_index(d_nodes.at(i)->getChildrenSize());
-        std::transform(children.begin(), children.end(), children_index.begin(), [&node2index](const node::Node &child) {
-            return node2index.at(child);
-        });
+        // std::vector<size_t> children_index(d_nodes.at(i)->getChildrenSize());
+        // std::transform(children.begin(), children.end(), children_index.begin(), [&node2index](const node::Node &child) {
+        //     return node2index.at(child);
+        // });
 
         if (d_nodes.at(i)->getKind() == stabilizer::parser::NODE_KIND::NT_FUNC_DEC)
             func_dec.emplace_back(d_nodes.at(i));

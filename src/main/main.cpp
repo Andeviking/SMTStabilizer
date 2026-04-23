@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
     // p.parse("/pub/netdisk1/zhangx/benchmark-2025/non-incremental/MARIPOSA/unstable_ext/fs_dice-queries-ASN1.Spec.Value.INTEGER-25.smt2");
 
     stabilizer::node::NodeManager nm(p);
+
     nm.simplify_assertions();
     // stabilizer::rewrite::Rewriter rewriter(nm);
 

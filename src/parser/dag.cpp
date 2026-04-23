@@ -369,8 +369,13 @@ void dumpSMTLIB2_streaming(const std::shared_ptr<DAGNode> &root,
                 auto child0 = node->getChild(0).get();
                 // node->getName() stores constructor symbol C
                 out << "((_ is " << node->getName() << ") ";
-                work_stack.emplace_back(nullptr, 2);                    // )
-                work_stack.emplace_back(child0->getChild(0).get(), 0);  // t
+                work_stack.emplace_back(nullptr, 2);  // )
+                if (child0->isLetBindVar()) {
+                    work_stack.emplace_back(child0->getChild(0)->getChild(0).get(), 0);
+                }
+                else
+                    work_stack.emplace_back(child0->getChild(0).get(), 0);  // t
+                // std::cout << kindToString(child0->getKind()) << ' ' << child0->getChildrenSize() << std::endl;
                 break;
             }
             // Datatype updater: ((_ update S) t u)
