@@ -13,6 +13,11 @@ jobs:
   build:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      VCPKG_REF: '2025.12.12'
+      VCPKG_TRIPLET: x64-windows
+      GMP_VERSION: '6.3.0'
+      MPFR_VERSION: '4.2.2'
     strategy:
       fail-fast: false
       matrix:
@@ -36,14 +41,30 @@ jobs:
         if: runner.os != 'Windows'
         run: ctest --test-dir build --output-on-failure
 
-      - name: Setup and install dependencies via vcpkg (Windows)
+      - name: Setup vcpkg for Windows
         if: runner.os == 'Windows'
-        uses: lukka/run-vcpkg@v11
+        shell: pwsh
+        run: |
+          git clone --branch $env:VCPKG_REF --depth 1 https://github.com/microsoft/vcpkg.git "$env:RUNNER_TEMP/vcpkg"
+          & "$env:RUNNER_TEMP/vcpkg/bootstrap-vcpkg.bat"
+          echo "VCPKG_ROOT=$env:RUNNER_TEMP/vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Cache vcpkg installed packages
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
         with:
-          vcpkgGitCommitId: '84bab45d415d22042bd0b9081aea57f362da3f35'
-          runVcpkgInstall: true
-          vcpkgJsonGlob: 'vcpkg.json'
-          doNotCache: false
+          path: |
+            ${{ runner.temp }}/vcpkg/installed
+            ${{ runner.temp }}/vcpkg/downloads
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}-gmp-${{ env.GMP_VERSION }}-mpfr-${{ env.MPFR_VERSION }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}-
+
+      - name: Install Windows dependencies
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_ROOT/vcpkg.exe" install --triplet $env:VCPKG_TRIPLET
 
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
@@ -53,6 +74,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF `
             -DSMTSTABILIZER_FORCE_FULLY_STATIC=OFF `
+            -DVCPKG_TARGET_TRIPLET=$env:VCPKG_TRIPLET `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
