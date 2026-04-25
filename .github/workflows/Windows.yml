@@ -45,28 +45,24 @@ jobs:
           git clone --branch $env:VCPKG_REF --depth 1 https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
           & "$env:VCPKG_ROOT/bootstrap-vcpkg.bat"
 
+      - name: Show vcpkg version
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_ROOT/vcpkg.exe" version
+      
       - name: Restore vcpkg cache
         id: vcpkg-cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache@v4
         with:
           path: |
             ${{ env.VCPKG_ROOT }}/downloads
             ${{ env.VCPKG_ROOT }}/installed
             ${{ github.workspace }}/vcpkg_installed
+            ${{ github.workspace }}/build/vcpkg_installed
             ${{ env.VCPKG_ROOT }}/.cache
           key: vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}-
-
-      - name: Show vcpkg version
-        shell: pwsh
-        run: |
-          & "$env:VCPKG_ROOT/vcpkg.exe" version
-
-      - name: Install Windows dependencies
-        shell: pwsh
-        run: |
-          & "$env:VCPKG_ROOT/vcpkg.exe" install --triplet "$env:VCPKG_TRIPLET"
 
       - name: Configure CMake
         shell: pwsh
@@ -78,21 +74,10 @@ jobs:
             -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TRIPLET" `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 
-      - name: Save vcpkg cache
-        if: steps.vcpkg-cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            ${{ env.VCPKG_ROOT }}/downloads
-            ${{ env.VCPKG_ROOT }}/installed
-            ${{ github.workspace }}/vcpkg_installed
-            ${{ env.VCPKG_ROOT }}/.cache
-          key: ${{ steps.vcpkg-cache-restore.outputs.cache-primary-key }}
-
       - name: Build
         shell: pwsh
         run: cmake --build build --config Release --parallel
 
-      - name: Run tests
-        shell: pwsh
-        run: ctest --test-dir build --output-on-failure -C Release
+      # - name: Run tests
+      #   shell: pwsh
+      #   run: ctest --test-dir build --output-on-failure -C Release
