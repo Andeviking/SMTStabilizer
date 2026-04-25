@@ -48,8 +48,6 @@ Typical build steps:
 
 ```bash
 python setup.py
-cmake -S . -B build
-cmake --build build -j
 ```
 
 Run the CLI after building:
