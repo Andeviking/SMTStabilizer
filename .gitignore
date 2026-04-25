@@ -48,7 +48,6 @@ build/
 .cache/
 .venv/
 .vscode/
-test/
 docs/*
 !docs/.gitkeep
 !docs/pages/
