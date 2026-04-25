@@ -269,10 +269,6 @@ class HighPrecisionReal {
 
 typedef HighPrecisionReal Real;
 
-#ifdef INFINITY
-#undef INFINITY
-#endif
-
 // A unified type that can represent both integers and reals
 class Number {
   public:
@@ -286,7 +282,7 @@ class Number {
     // Constant
     static Number ZERO;
     static Number ONE;
-    static Number INFINITY;
+    static Number INF;
     static Number pi(size_t precision = 128);
     static Number e(size_t precision = 128);
     static Number phi(size_t precision = 128);

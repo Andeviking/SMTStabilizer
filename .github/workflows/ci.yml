@@ -71,15 +71,6 @@ jobs:
         run: |
           & "$env:VCPKG_ROOT/vcpkg.exe" install --triplet $env:VCPKG_TRIPLET
 
-      - name: Save vcpkg cache after dependency install
-        if: runner.os == 'Windows' && steps.vcpkg-cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            ${{ runner.temp }}/vcpkg/installed
-            ${{ runner.temp }}/vcpkg/downloads
-          key: ${{ steps.vcpkg-cache-restore.outputs.cache-primary-key }}
-
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -91,6 +82,16 @@ jobs:
             -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TRIPLET" `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 
+
+      - name: Save vcpkg cache after dependency install
+        if: runner.os == 'Windows' && steps.vcpkg-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ runner.temp }}/vcpkg/installed
+            ${{ runner.temp }}/vcpkg/downloads
+          key: ${{ steps.vcpkg-cache-restore.outputs.cache-primary-key }}
+          
       - name: Build
         if: runner.os == 'Windows'
         run: cmake --build build --config Release --parallel
