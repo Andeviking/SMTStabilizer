@@ -280,7 +280,7 @@ class BitVector {
     void set_bit(uint64_t idx, bool value);
     /**
      * Flip the bit at given index (in-place).
-     * @param The index of the bit.
+     * @param idx The index of the bit.
      */
     void flip_bit(uint64_t idx);
     /** @return True if the lsb (index 0) is 1, and false otherwise. */
@@ -312,8 +312,8 @@ class BitVector {
      */
     bool is_neg_overflow() const;
     /**
-     * Determine if the (unsigned) addition of this and the given bit-vector
-     * produces an overflow.
+     * @param bv A bit-vector representing the number of bits to shift this
+     *           bit-vector to the left.
      * @param bv The bit-vector to add to this bit-vector.
      * @return True if it produces an overflow.
      */
@@ -588,8 +588,8 @@ class BitVector {
     /**
      * Create a bit-vector representing the logical right shift of this
      * bit-vector by the given bit-vector shift value.
-     * @param shift A bit-vector representing he number of bits to shift this
-     *              bit-vector to the right.
+     * @param bv A bit-vector representing the number of bits to shift this
+     *           bit-vector to the right.
      * @return A bit-vector representing the result of the logical right shift.
      */
     BitVector bvshr(const BitVector &bv) const;
@@ -604,8 +604,8 @@ class BitVector {
     /**
      * Create a bit-vector representing the arithmetic right shift of this
      * bit-vector by the given bit-vector shift value.
-     * @param shift A bit-vector representing he number of bits to shift this
-     *              bit-vector to the right.
+     * @param bv A bit-vector representing the number of bits to shift this
+     *           bit-vector to the right.
      * @return A bit-vector representing the result of the arithmetic right shift.
      */
     BitVector bvashr(const BitVector &bv) const;
@@ -1560,8 +1560,8 @@ class BitVector {
      *
      * @note The result of this operation is stored in-place, in this bit-vector.
      *
-     * @param shift A bit-vector representing the number of bits to shift
-     *              this bit-vector to the right.
+     * @param bv A bit-vector representing the number of bits to shift this
+     *           bit-vector to the right.
      * @return A reference to this bit-vector, overwritten with the result of the
      *         arithmetic right shift.
      */

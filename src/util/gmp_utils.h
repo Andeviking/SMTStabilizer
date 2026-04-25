@@ -45,8 +45,9 @@ mpz_class uint64_to_mpz_class(uint64_t op);
 void mpz_init_set_sll(mpz_t rop, int64_t op);
 
 /**
- * Compute hash value of GMP value rop
- * @param start Optionally seed hash given value.
+ * Compute hash value of a GMP value.
+ * @param op GMP value to hash.
+ * @param start Optional hash seed.
  * @return The hash value.
  */
 size_t mpz_hash(const mpz_t op, uint64_t start = 0);

@@ -40,7 +40,10 @@
 # debug information files
 *.dwo
 
-submodules/
+submodules/include/
+submodules/lib/
+submodules/cache/gmp-6.3.0/
+submodules/cache/mpfr-4.2.2/
 build/
 .cache/
 .venv/

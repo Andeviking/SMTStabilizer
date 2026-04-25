@@ -450,7 +450,8 @@ class Parser {
     /**
      * @brief Set global options
      *
-     * @return set option value
+     * @param key Option name
+     * @param value Option value
      */
     void setOption(const std::string &key, const std::string &value);
     void setOption(const std::string &key, const int &value);
@@ -533,7 +534,8 @@ class Parser {
     /**
      * @brief Get sort
      *
-     * @param params Vector of parameters
+     * @param l Left operand
+     * @param r Right operand
      * @return Sort
      */
     std::shared_ptr<Sort> getSort(std::shared_ptr<DAGNode> l,
@@ -542,7 +544,9 @@ class Parser {
     /**
      * @brief Get sort
      *
-     * @param params Vector of parameters
+     * @param l First operand
+     * @param r Second operand
+     * @param m Third operand
      * @return Sort
      */
     std::shared_ptr<Sort> getSort(std::shared_ptr<DAGNode> l,
@@ -552,7 +556,7 @@ class Parser {
     /**
      * @brief Get kind
      *
-     * @param s String
+     * @param s String token
      * @return NODE_KIND
      */
     NODE_KIND getKind(const std::string &s);
@@ -855,9 +859,8 @@ class Parser {
     /**
      * @brief Create a recursive function application
      *
-     * @param sort Sort
-     * @param name Function name
-     * @param params Parameters
+     * @param fun Recursive function symbol node
+     * @param params Argument list
      * @return Recursive function application node
      */
     std::shared_ptr<DAGNode>
@@ -2070,7 +2073,8 @@ class Parser {
     /**
      * @brief Create a bitvector nand node
      *
-     * @param params Parameters
+     * @param l Left operand
+     * @param r Right operand
      * @return Bitvector nand node (~(l & r & ...))
      */
     std::shared_ptr<DAGNode>
@@ -2080,7 +2084,8 @@ class Parser {
     /**
      * @brief Create a bitvector nor node
      *
-     * @param params Parameters
+     * @param l Left operand
+     * @param r Right operand
      * @return Bitvector nor node (~(l | r | ...))
      */
     std::shared_ptr<DAGNode>
@@ -2090,8 +2095,7 @@ class Parser {
     /**
      * @brief Create a bitvector comparison node
      *
-     * @param l Left parameter
-     * @param r Right parameter
+     * @param params Operand list; the first two operands are compared.
      * @return Bitvector comparison node (l = r ? #b1 : #b0)
      */
     std::shared_ptr<DAGNode>
@@ -2100,7 +2104,8 @@ class Parser {
     /**
      * @brief Create a bitvector xnor node
      *
-     * @param params Parameters
+     * @param l Left operand
+     * @param r Right operand
      * @return Bitvector xnor node (~(l ^ r ^ ...))
      */
     std::shared_ptr<DAGNode>
@@ -2127,7 +2132,8 @@ class Parser {
     /**
      * @brief Create a bitvector subtraction node
      *
-     * @param params Parameters
+     * @param l Left operand
+     * @param r Right operand
      * @return Bitvector subtraction node (l - r - ...)
      */
     std::shared_ptr<DAGNode> mkBvSub(std::shared_ptr<DAGNode> l,
@@ -2546,7 +2552,8 @@ class Parser {
      *
      * @note Returns NaN for negative values
      *
-     * @param param Parameter
+     * @param rm Rounding mode
+     * @param param Operand
      * @return Floating-point square root node (fp.sqrt(param))
      */
     std::shared_ptr<DAGNode>
@@ -2558,7 +2565,8 @@ class Parser {
     /**
      * @brief Create a floating-point round to integral node
      *
-     * @param param Parameter
+     * @param rm Rounding mode
+     * @param param Operand
      * @return Floating-point round to integral node (fp.roundToIntegral(param))
      */
     std::shared_ptr<DAGNode> mkFpRoundToIntegral(
@@ -2570,7 +2578,8 @@ class Parser {
     /**
      * @brief Create a floating-point minimum node
      *
-     * @param params Parameters
+     * @param l Left operand
+     * @param r Right operand
      * @return Floating-point minimum node (fp.min(params))
      */
     std::shared_ptr<DAGNode>
@@ -2580,7 +2589,8 @@ class Parser {
     /**
      * @brief Create a floating-point maximum node
      *
-     * @param params Parameters
+     * @param l Left operand
+     * @param r Right operand
      * @return Floating-point maximum node (fp.max(params))
      */
     std::shared_ptr<DAGNode>
@@ -3009,8 +3019,7 @@ class Parser {
     /**
      * @brief Create a string less-than node
      *
-     * @param l Left string
-     * @param r Right string
+     * @param params Operand list containing two strings
      * @return String less-than node (str.<(l, r))
      */
     std::shared_ptr<DAGNode>
@@ -3019,8 +3028,7 @@ class Parser {
     /**
      * @brief Create a string less-than-or-equal node
      *
-     * @param l Left string
-     * @param r Right string
+     * @param params Operand list containing two strings
      * @return String less-than-or-equal node (str.<=(l, r))
      */
     std::shared_ptr<DAGNode>
@@ -3029,8 +3037,7 @@ class Parser {
     /**
      * @brief Create a string greater-than node
      *
-     * @param l Left string
-     * @param r Right string
+     * @param params Operand list containing two strings
      * @return String greater-than node (str.>(l, r))
      */
     std::shared_ptr<DAGNode>
@@ -3039,8 +3046,7 @@ class Parser {
     /**
      * @brief Create a string greater-than-or-equal node
      *
-     * @param l Left string
-     * @param r Right string
+     * @param params Operand list containing two strings
      * @return String greater-than-or-equal node (str.>=(l, r))
      */
     std::shared_ptr<DAGNode>

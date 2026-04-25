@@ -1101,6 +1101,7 @@ class DAGNode {
      * @param out_sort The output sort
      * @param body The body of the function
      * @param params The parameters of the function
+     * @param is_rec True when updating a recursive function definition
      */
     void updateFuncDef(std::shared_ptr<Sort> out_sort,
                        std::shared_ptr<DAGNode> body,
@@ -1115,6 +1116,7 @@ class DAGNode {
      * @param out_sort The output sort
      * @param body The body of the function
      * @param params The parameters of the function
+     * @param is_rec True when updating a recursive function application
      */
     void updateApplyFunc(std::shared_ptr<Sort> out_sort,
                          std::shared_ptr<DAGNode> body,
