@@ -35,7 +35,7 @@
 #include "util/node_helper.h"
 
 namespace stabilizer::kernel {
-Kernel::Kernel(node::NodeManager &nm) {
+Kernel::Kernel(node::NodeManager &nm, const bool &context_propagation, const bool &symmetry_breaking_perturbation) : d_context_propagation(context_propagation), d_symmetry_breaking_perturbation(symmetry_breaking_perturbation) {
     std::vector<node::Node> visit(nm.assertions());
     std::unordered_map<node::Node, size_t> node2index;
     // node2index.emplace(nm.assertion(), 0);
@@ -145,43 +145,44 @@ bool Kernel::is_commutative(const size_t &i, const bool &from_cache) {
 }
 
 void Kernel::propagate(const std::vector<size_t> &processing) {
-    // static std::vector<size_t> pre_hash_table = d_hash_table;
-    // for (const auto& node : processing)
-    //     pre_hash_table.at(node) = d_hash_table.at(node);
-    // std::random_device rd;
-    // std::mt19937 gen(rd());
-    // std::vector<size_t> v(processing);
-    // std::shuffle(v.begin(), v.end(), gen);
-    // for (const auto& node : v) {
-    //     const auto& children = d_graph.at(node);
-    //     if (children.empty()) continue;
-    //     if (is_commutative(node)) {
-    //         util::hash_communative_children(pre_hash_table.at(node), children, d_hash_table);
-    //     }
-    //     else {
-    //         util::hash_children(pre_hash_table.at(node), children, d_hash_table);
-    //     }
-    //     util::hash_parents(pre_hash_table.at(node), d_reversed_graph.at(node), d_hash_table);
-    // }
+    if (!d_context_propagation) {
+        static std::vector<size_t> pre_hash_table = d_hash_table;
+        for (const auto &node : processing)
+            pre_hash_table.at(node) = d_hash_table.at(node);
+        std::vector<size_t> v(processing);
+        for (const auto &node : v) {
+            const auto &children = d_graph.at(node);
+            if (children.empty()) continue;
+            if (is_commutative(node)) {
+                util::hash_communative_children(pre_hash_table.at(node), children, d_hash_table);
+            }
+            else {
+                util::hash_children(pre_hash_table.at(node), children, d_hash_table);
+            }
+            util::hash_parents(pre_hash_table.at(node), d_reversed_graph.at(node), d_hash_table);
+        }
 
-    // for (const auto& node : v)
-    //     d_hash_table.at(node) = pre_hash_table.at(node);
-    for (const auto &node : processing) {
-        const auto &children = d_graph.at(node);
-        if (children.empty()) continue;
-        if (is_commutative(node)) {
-            util::hash_communative_children(d_hash_table.at(node), children, d_hash_table);
-        }
-        else {
-            util::hash_children(d_hash_table.at(node), children, d_hash_table);
-        }
+        for (const auto &node : v)
+            d_hash_table.at(node) = pre_hash_table.at(node);
     }
-    for (auto it = processing.rbegin(); it != processing.rend(); ++it) {
-        const auto &node = *it;
-        const auto &parents = d_reversed_graph.at(node);
-        if (parents.empty())
-            continue;
-        util::hash_parents(d_hash_table.at(node), parents, d_hash_table);
+    else {
+        for (const auto &node : processing) {
+            const auto &children = d_graph.at(node);
+            if (children.empty()) continue;
+            if (is_commutative(node)) {
+                util::hash_communative_children(d_hash_table.at(node), children, d_hash_table);
+            }
+            else {
+                util::hash_children(d_hash_table.at(node), children, d_hash_table);
+            }
+        }
+        for (auto it = processing.rbegin(); it != processing.rend(); ++it) {
+            const auto &node = *it;
+            const auto &parents = d_reversed_graph.at(node);
+            if (parents.empty())
+                continue;
+            util::hash_parents(d_hash_table.at(node), parents, d_hash_table);
+        }
     }
 }
 
@@ -526,24 +527,28 @@ void Kernel::apply(node::NodeManager &nm) {
         nm.getSortNames().clear();
         nm.getDatatypeBlocks().clear();
     }
-    // while (true) {
-    //     std::unordered_map<size_t, size_t> hash_count;
-    //     bool flag = true;
-    //     for (const auto& node : d_processing) {
-    //         hash_count[d_hash_table.at(node)]++;
-    //         if (hash_count[d_hash_table.at(node)] > 1) {
-    //             flag = false;
-    //             break;
-    //         }
-    //     }
-    //     if (flag)
-    //         break;
-    //     else
-    //         specific_propagate();
-    // }
-    while (d_unique_symbols.size() != d_symbol_num) {
-        rebuild_graph();
-        specific_propagate();
+    if (!d_symmetry_breaking_perturbation) {
+        while (true) {
+            std::unordered_map<size_t, size_t> hash_count;
+            bool flag = true;
+            for (const auto &node : d_processing) {
+                hash_count[d_hash_table.at(node)]++;
+                if (hash_count[d_hash_table.at(node)] > 1) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag)
+                break;
+            else
+                specific_propagate();
+        }
+    }
+    else {
+        while (d_unique_symbols.size() != d_symbol_num) {
+            rebuild_graph();
+            specific_propagate();
+        }
     }
 
     // d_hash_table = d_context_hash;

@@ -32,7 +32,24 @@ int main(int argc, char *argv[]) {
     stabilizer::parser::Parser p;
     p.getOptions()->setKeepLet(false);
     p.getOptions()->setExpandFunctions(false);
-    if (argc == 2)
+    bool context_propagation = true;
+    bool symmetry_breaking_perturbation = true;
+    if (argc > 2) {
+        for (size_t i = 2; i < argc; ++i) {
+            std::string arg(argv[i]);
+            if (arg == "--no-cp") {
+                context_propagation = false;
+            }
+            else if (arg == "--no-sbp") {
+                symmetry_breaking_perturbation = false;
+            }
+            else {
+                std::cerr << "Unknown option: " << arg << std::endl;
+                return 1;
+            }
+        }
+    }
+    if (argc >= 2)
         p.parse(argv[1]);
     else
         p.parse("");
@@ -45,7 +62,7 @@ int main(int argc, char *argv[]) {
 
     // rewriter.apply();
 
-    stabilizer::kernel::Kernel kernel(nm);
+    stabilizer::kernel::Kernel kernel(nm, context_propagation, symmetry_breaking_perturbation);
     struct timespec t_start, t_end;
     if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t_start))
         perror("clock gettime");

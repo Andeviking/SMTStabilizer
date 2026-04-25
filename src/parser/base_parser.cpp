@@ -2879,8 +2879,8 @@ std::string Parser::dumpSMT2() {
     std::stringstream ss;
 
     // [set-option]
-    // for (const auto &s : parse_options)
-    //     ss << s << std::endl;
+    for (const auto &s : parse_options)
+        ss << s << std::endl;
     ss << "(set-logic " << options->getLogic() << ")" << std::endl;
 
     size_t sort_count = 0;

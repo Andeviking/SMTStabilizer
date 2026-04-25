@@ -30,7 +30,7 @@ namespace stabilizer::kernel {
 class Kernel {
   public:
     Kernel() = delete;
-    Kernel(node::NodeManager &nm);  //[TODO] convert declare-fun to declare-const
+    Kernel(node::NodeManager &nm, const bool &context_propagation = true, const bool &symmetry_breaking_perturbation = true);
 
     void apply(node::NodeManager &nm);
 
@@ -53,6 +53,9 @@ class Kernel {
     // std::unordered_map<size_t, size_t> d_spe_hash_count;
 
     size_t d_symbol_num;
+
+    bool d_context_propagation = true;
+    bool d_symmetry_breaking_perturbation = true;
 
     bool is_commutative(const size_t &i, const bool &from_cache = true);
     // void context_propagate();
