@@ -1,0 +1,10 @@
+{
+    "name": "smtstabilizer",
+    "version-string": "0.1.0",
+    "description": "Windows dependency manifest for SMTStabilizer CI",
+    "dependencies": [
+        "gmp",
+        "mpfr"
+    ],
+    "builtin-baseline": "84bab45d415d22042bd0b9081aea57f362da3f35"
+}
