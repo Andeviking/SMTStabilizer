@@ -16,11 +16,12 @@ concurrency:
 env:
   VCPKG_REF: '2025.12.12'
   VCPKG_TRIPLET: x64-windows
-  VCPKG_ROOT: ${{ runner.temp }}/vcpkg
 
 jobs:
   build-windows:
     runs-on: windows-latest
+    env:
+      VCPKG_ROOT: ${{ runner.temp }}/vcpkg
 
     steps:
       - name: Checkout repository
