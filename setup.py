@@ -379,6 +379,14 @@ submodules_dir: Path = Path()
 include_dir: Path = Path()
 lib_dir: Path = Path()
 
+
+def is_windows() -> bool:
+    return os.name == "nt" or sys.platform.startswith("win")
+
+
+def is_macos() -> bool:
+    return sys.platform == "darwin"
+
 def build_mpfr():
     """
     Download, extract, configure, build and install MPFR into the submodules prefix.
@@ -548,18 +556,24 @@ if __name__ == "__main__":
             error(f"Failed to create directory {d}: {e}")
             sys.exit(1)
 
-    # Now run build step (uses the absolute paths above if needed)
-    try:
-        build_gmp()
-    except Exception as e:
-        error(f"build_gmp failed: {e}")
-        sys.exit(1)
+    # Build dependency archives with autotools on non-Windows hosts.
+    # Windows users should provide dependencies through vcpkg/system packages.
+    if not is_windows():
+        try:
+            build_gmp()
+        except Exception as e:
+            error(f"build_gmp failed: {e}")
+            sys.exit(1)
 
-    try:
-        build_mpfr()
-    except Exception as e:
-        error(f"build_mpfr failed: {e}")
-        sys.exit(1)
+        try:
+            build_mpfr()
+        except Exception as e:
+            error(f"build_mpfr failed: {e}")
+            sys.exit(1)
+    else:
+        warn("Windows detected: skipping GMP/MPFR autotools build in setup.py.")
+        warn("Install dependencies with vcpkg and set VCPKG_ROOT before running setup.py.")
+
     # Remove existing build directory and perform a Release build using CMake
     try:
         build_dir = base_dir / "build"
@@ -572,11 +586,26 @@ if __name__ == "__main__":
             except Exception as e:
                 warn(f"Failed to remove {build_dir}: {e}")
 
+        cmake_args = ["cmake", "-S", str(base_dir), "-B", str(build_dir), "-DCMAKE_BUILD_TYPE=Release"]
+
+        if is_windows():
+            cmake_args.extend([
+                "-DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF",
+                "-DSMTSTABILIZER_FORCE_FULLY_STATIC=OFF",
+            ])
+            vcpkg_root = os.environ.get("VCPKG_ROOT", "").strip()
+            if vcpkg_root:
+                toolchain = Path(vcpkg_root) / "scripts" / "buildsystems" / "vcpkg.cmake"
+                cmake_args.append(f"-DCMAKE_TOOLCHAIN_FILE={toolchain}")
+            else:
+                warn("VCPKG_ROOT is not set. CMake may fail to locate GMP/MPFR on Windows.")
+        else:
+            cmake_args.append("-DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=ON")
+            if is_macos():
+                cmake_args.append("-DSMTSTABILIZER_FORCE_FULLY_STATIC=OFF")
+
         info("Configuring project with CMake (Release)")
-        subprocess.run(
-            ["cmake", "-S", str(base_dir), "-B", str(build_dir), "-DCMAKE_BUILD_TYPE=Release"],
-            check=True,
-        )
+        subprocess.run(cmake_args, check=True)
 
         info("Building project (Release)")
         subprocess.run(

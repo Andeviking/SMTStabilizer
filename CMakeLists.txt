@@ -21,14 +21,34 @@
 cmake_minimum_required(VERSION 3.16)
 
 set(BUILD_SHARED_LIBS OFF)
-set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS "")
-set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS "")
-set(CMAKE_EXE_LINK_STATIC_C_FLAGS "-static")
-set(CMAKE_EXE_LINK_STATIC_CXX_FLAGS "-static")
 
+set(SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS_DEFAULT ON)
+if (WIN32)
+    set(SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS_DEFAULT OFF)
+endif()
+option(SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS
+    "Link against bundled static GMP/MPFR archives under submodules/lib"
+    ${SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS_DEFAULT})
+
+set(SMTSTABILIZER_FORCE_FULLY_STATIC_DEFAULT OFF)
 if (UNIX AND NOT APPLE)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+    set(SMTSTABILIZER_FORCE_FULLY_STATIC_DEFAULT ON)
+endif()
+option(SMTSTABILIZER_FORCE_FULLY_STATIC
+    "Request fully static executable linking (Linux only)"
+    ${SMTSTABILIZER_FORCE_FULLY_STATIC_DEFAULT})
+
+if (SMTSTABILIZER_FORCE_FULLY_STATIC)
+    if (UNIX AND NOT APPLE)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+        set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS "")
+        set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS "")
+        set(CMAKE_EXE_LINK_STATIC_C_FLAGS "-static")
+        set(CMAKE_EXE_LINK_STATIC_CXX_FLAGS "-static")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+    else()
+        message(WARNING "SMTSTABILIZER_FORCE_FULLY_STATIC is only supported on Linux. Ignoring this option on the current platform.")
+    endif()
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -36,6 +56,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(SPEED_FLAGS "-O3 -march=native -mtune=native -funroll-loops -fstrict-aliasing -fomit-frame-pointer -fPIC")
+elseif(MSVC)
+    set(SPEED_FLAGS "/O2")
 else()
     set(SPEED_FLAGS "-O3 -fPIC")
 endif()
@@ -43,9 +65,6 @@ endif()
 string(REPLACE ";" " " SPEED_FLAGS "${SPEED_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${SPEED_FLAGS}")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${SPEED_FLAGS}")
-
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-set(BUILD_SHARED_LIBS OFF)        
 
 project(SMTStabilizer)
 
@@ -79,14 +98,39 @@ else()
         VERBATIM)
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/submodules/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-# file(GLOB_RECURSE ALL_LIBRARIES "${CMAKE_SOURCE_DIR}/submodules/lib/*.a")
-set(ALL_LIBRARIES
-    ${CMAKE_SOURCE_DIR}/submodules/lib/libmpfr.a
-    ${CMAKE_SOURCE_DIR}/submodules/lib/libgmp.a
-    ${CMAKE_SOURCE_DIR}/submodules/lib/libgmpxx.a)
+if (SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/submodules/include)
+    set(ALL_LIBRARIES
+        ${CMAKE_SOURCE_DIR}/submodules/lib/libmpfr.a
+        ${CMAKE_SOURCE_DIR}/submodules/lib/libgmp.a
+        ${CMAKE_SOURCE_DIR}/submodules/lib/libgmpxx.a)
+    foreach(LIB_FILE IN LISTS ALL_LIBRARIES)
+        if (NOT EXISTS ${LIB_FILE})
+            message(FATAL_ERROR
+                "Bundled library not found: ${LIB_FILE}. "
+                "Either initialize bundled dependencies or configure with "
+                "-DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF to use system libraries.")
+        endif()
+    endforeach()
+else()
+    find_path(GMP_INCLUDE_DIR gmp.h)
+    find_path(MPFR_INCLUDE_DIR mpfr.h)
+    find_library(GMP_LIBRARY NAMES gmp libgmp)
+    find_library(GMPXX_LIBRARY NAMES gmpxx libgmpxx)
+    find_library(MPFR_LIBRARY NAMES mpfr libmpfr)
+
+    if (NOT GMP_INCLUDE_DIR OR NOT MPFR_INCLUDE_DIR OR NOT GMP_LIBRARY OR NOT GMPXX_LIBRARY OR NOT MPFR_LIBRARY)
+        message(FATAL_ERROR
+            "Unable to find GMP/MPFR development files. "
+            "Install platform packages (Linux: libgmp-dev libmpfr-dev, macOS: brew install gmp mpfr), "
+            "or on Windows use vcpkg and pass its toolchain file to CMake.")
+    endif()
+
+    include_directories(${GMP_INCLUDE_DIR} ${MPFR_INCLUDE_DIR})
+    set(ALL_LIBRARIES ${MPFR_LIBRARY} ${GMPXX_LIBRARY} ${GMP_LIBRARY})
+endif()
 
 # add_subdirectory(src/kernel)
 add_subdirectory(src/main)

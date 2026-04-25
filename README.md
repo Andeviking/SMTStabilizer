@@ -45,10 +45,30 @@ Prerequisites:
 - CMake 3.15 or newer.
 - Python 3.8+ for dependency setup.
 
-Typical build steps:
+Additional dependency note:
+
+- Linux/macOS: `setup.py` downloads and builds GMP/MPFR automatically.
+- Windows: install GMP/MPFR via vcpkg before configuring CMake.
+
+### Linux/macOS
 
 ```bash
-python setup.py
+python3 setup.py
+```
+
+### Windows (same as CI)
+
+Install dependencies with vcpkg:
+
+```powershell
+vcpkg install gmp mpfr --triplet x64-windows
+```
+
+Then configure, build, and test:
+
+```powershell
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF -DSMTSTABILIZER_FORCE_FULLY_STATIC=OFF -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+cmake --build build --config Release --parallel
 ```
 
 Run the CLI after building:
@@ -155,6 +175,12 @@ Run the API test suite with CTest after building:
 
 ```bash
 ctest --test-dir build --output-on-failure
+```
+
+On Windows multi-config generators, use:
+
+```powershell
+ctest --test-dir build --output-on-failure -C Release
 ```
 
 The tests live in `test/api_tests.cpp` and use the fixtures in `test/inputs/`.
