@@ -1,0 +1,9 @@
+{
+    "name": "smtstabilizer",
+    "version-string": "0.1.0",
+    "description": "Windows dependency manifest for SMTStabilizer CI",
+    "dependencies": [
+        "gmp",
+        "mpfr"
+    ]
+}
