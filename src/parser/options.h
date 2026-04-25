@@ -80,9 +80,14 @@ class GlobalOptions {
     // if false (default), recursive functions will not be expanded
     bool expand_recursive_functions = false;
 
+    bool rewrite = true;
+
   public:
     GlobalOptions() = default;
     ~GlobalOptions() = default;
+
+    void setRewrite(bool rewrite) { this->rewrite = rewrite; }
+    bool getRewrite() const { return rewrite; }
 
     bool setLogic(const std::string &logic_name) {
         if (logic_name == "AUFBV" || logic_name == "QF_RDL" ||
