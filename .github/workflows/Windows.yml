@@ -4,9 +4,21 @@ on:
   push:
     branches:
       - master
+    paths:
+      - CMakeLists.txt
+      - vcpkg.json
+      - src/**
+      - test/**
+      - .github/workflows/Windows.yml
   pull_request:
     branches:
       - master
+    paths:
+      - CMakeLists.txt
+      - vcpkg.json
+      - src/**
+      - test/**
+      - .github/workflows/Windows.yml
   workflow_dispatch:
 
 concurrency:
@@ -41,6 +53,7 @@ jobs:
             ${{ env.VCPKG_ROOT }}/downloads
             ${{ env.VCPKG_ROOT }}/installed
             ${{ github.workspace }}/vcpkg_installed
+            ${{ env.VCPKG_ROOT }}/.cache
           key: vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}-
@@ -72,6 +85,8 @@ jobs:
           path: |
             ${{ env.VCPKG_ROOT }}/downloads
             ${{ env.VCPKG_ROOT }}/installed
+            ${{ github.workspace }}/vcpkg_installed
+            ${{ env.VCPKG_ROOT }}/.cache
           key: ${{ steps.vcpkg-cache-restore.outputs.cache-primary-key }}
 
       - name: Build

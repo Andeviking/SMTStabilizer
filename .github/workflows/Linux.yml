@@ -4,9 +4,21 @@ on:
   push:
     branches:
       - master
+    paths:
+      - CMakeLists.txt
+      - setup.py
+      - src/**
+      - test/**
+      - .github/workflows/Linux.yml
   pull_request:
     branches:
       - master
+    paths:
+      - CMakeLists.txt
+      - setup.py
+      - src/**
+      - test/**
+      - .github/workflows/Linux.yml
   workflow_dispatch:
 
 concurrency:
