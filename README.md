@@ -1,7 +1,7 @@
 # SMTStabilizer
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Docs](https://img.shields.io/badge/docs-Doxygen-informational.svg)](docs/html/index.html)
+[![Docs](https://img.shields.io/badge/docs-Doxygen-informational.svg)](docs/)
 
 SMTStabilizer is a normalization tool for SMT-LIB2 inputs. It reduces runtime
 variance caused by small syntactic mutations such as assertion reordering,
