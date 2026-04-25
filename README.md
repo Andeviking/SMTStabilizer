@@ -2,6 +2,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-Doxygen-informational.svg)](docs/)
+[![Pages](https://img.shields.io/badge/pages-live-informational.svg)](https://andeviking.github.io/SMTStabilizer/)
 
 SMTStabilizer is a normalization tool for SMT-LIB2 inputs. It reduces runtime
 variance caused by small syntactic mutations such as assertion reordering,
@@ -141,6 +142,12 @@ xdg-open docs/html/index.html
 ```
 
 or open the file directly from the editor sidebar.
+
+When pushed to GitHub, the same documentation is automatically built by GitHub Actions and published to GitHub Pages at:
+
+https://andeviking.github.io/SMTStabilizer/
+
+GitHub Pages must be enabled for the repository with the source set to GitHub Actions.
 
 ## Testing
 
