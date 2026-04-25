@@ -42,7 +42,7 @@ jobs:
         with:
           vcpkgGitCommitId: '84bab45d415d22042bd0b9081aea57f362da3f35'
           runVcpkgInstall: true
-          vcpkgJsonGlob: '.github/vcpkg/windows/vcpkg.json'
+          vcpkgJsonGlob: 'vcpkg.json'
           doNotCache: false
 
       - name: Configure CMake (Windows)
