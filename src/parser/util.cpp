@@ -33,6 +33,7 @@
 #include <cstdint>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -286,15 +287,13 @@ Integer MathUtils::lcm(const Integer &a, const Integer &b) {
 
 Real MathUtils::sqrt(const Integer &i) {
     if (i < 0) {
-        std::cerr << "Error: MathUtils::sqrt of negative number" << std::endl;
-        exit(1);
+        throw std::runtime_error("Error: MathUtils::sqrt of negative number");
     }
     return HighPrecisionReal(i).sqrt();
 }
 Real MathUtils::sqrt(const Real &r) {
     if (r < 0) {
-        std::cerr << "Error: MathUtils::sqrt of negative number" << std::endl;
-        exit(1);
+        throw std::runtime_error("Error: MathUtils::sqrt of negative number");
     }
     return r.sqrt();
 }

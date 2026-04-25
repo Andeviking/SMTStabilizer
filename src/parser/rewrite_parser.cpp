@@ -22,6 +22,7 @@
 #include <cassert>
 #include <cstddef>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -32,8 +33,7 @@
 #include "parser/util.h"
 namespace stabilizer::parser {
 void echo_error(const std::string &msg) {
-    std::cerr << msg << std::endl;
-    exit(1);
+    throw std::runtime_error(msg);
 }
 // unary
 std::shared_ptr<DAGNode> Parser::rewrite(NODE_KIND &t, std::shared_ptr<DAGNode> &p) {
@@ -1867,9 +1867,7 @@ std::shared_ptr<DAGNode> Parser::rewrite_oper(NODE_KIND &t, std::vector<std::sha
     if (!options->getRewrite())
         return nullptr;
     if (getArity(t) > 0 && p.size() != getArity(t)) {
-        std::cout << "NODEKIND: " << kindToString(t) << " Arity: " << getArity(t) << " NUM_CHILDREN: " << p.size() << std::endl;
-        std::cout << "error: params number not equal to arity !!!" << std::endl;
-        exit(0);
+        throw std::runtime_error("error: params number not equal to arity !!!");
     }
     switch (t) {
         // zero-ary

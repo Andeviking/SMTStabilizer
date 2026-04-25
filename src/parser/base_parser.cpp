@@ -31,6 +31,7 @@
 #include <memory>
 #include <queue>
 #include <stack>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -2559,6 +2560,8 @@ void Parser::err_all(const ERROR_TYPE e, const std::string s, const size_t ln) c
         case ERROR_TYPE::ERR_NEG_PARAM:
             err_neg_param(ln);
             break;
+        default:
+            throw std::runtime_error("Unknown parser error");
     }
 }
 
@@ -2568,110 +2571,81 @@ void Parser::err_all(const std::shared_ptr<DAGNode> e, const std::string s, cons
 
 // unexpected end of file
 void Parser::err_unexp_eof() const {
-    std::cout << "error: Unexpected end of file found." << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Unexpected end of file found.");
 }
 
 // symbol missing
 void Parser::err_sym_mis(const std::string mis, const size_t ln) const {
-    std::cout << "error: \"" << mis << "\" missing in line " << ln << '.'
-              << std::endl;
-    exit(0);
+    throw std::runtime_error("error: \"" + mis + "\" missing in line " + std::to_string(ln) + ".");
 }
 
 void Parser::err_sym_mis(const std::string mis, const std::string nm, const size_t ln) const {
-    std::cout << "error: \"" << mis << "\" missing before \"" << nm
-              << "\" in line " << ln << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: \"" + mis + "\" missing before \"" + nm + "\" in line " + std::to_string(ln) + ".");
 }
 
 // unknown symbol
 void Parser::err_unkwn_sym(const std::string nm, const size_t ln) const {
     if (nm == "")
         err_unexp_eof();
-    std::cout << "error: Unknown or unexptected symbol \"" << nm << "\" in line "
-              << ln << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Unknown or unexptected symbol \"" + nm + "\" in line " + std::to_string(ln) + ".");
 }
 
 // wrong number of parameters
 void Parser::err_param_mis(const std::string nm, const size_t ln) const {
-    std::cout << "error: Wrong number of parameters of \"" << nm << "\" in line "
-              << ln << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Wrong number of parameters of \"" + nm + "\" in line " + std::to_string(ln) + ".");
 }
 
 // paramerter type error
 void Parser::err_param_nbool(const std::string nm, const size_t ln) const {
-    std::cout << "error: Invalid command \"" << nm << "\" in line " << ln
-              << ", paramerter is not a boolean." << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Invalid command \"" + nm + "\" in line " + std::to_string(ln) + ", paramerter is not a boolean.");
 }
 
 void Parser::err_param_nnum(const std::string nm, const size_t ln) const {
-    std::cout << "error: Invalid command \"" << nm << "\" in line " << ln
-              << ", paramerter is not an integer or a real." << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Invalid command \"" + nm + "\" in line " + std::to_string(ln) + ", paramerter is not an integer or a real.");
 }
 
 // paramerters are not in same type
 void Parser::err_param_nsame(const std::string nm, const size_t ln) const {
-    std::cout << "error: Invalid command \"" << nm << "\" in line " << ln
-              << ", paramerters are not in same type." << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Invalid command \"" + nm + "\" in line " + std::to_string(ln) + ", paramerters are not in same type.");
 }
 
 // logic doesnt support
 void Parser::err_logic(const std::string nm, const size_t ln) const {
-    std::cout << "error: Logic does not support \"" << nm << "\" in line " << ln
-              << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Logic does not support \"" + nm + "\" in line " + std::to_string(ln) + ".");
 }
 
 // multiple declaration
 void Parser::err_mul_decl(const std::string nm, const size_t ln) const {
-    std::cout << "error: Multiple declarations of \"" << nm << "\" in line " << ln
-              << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Multiple declarations of \"" + nm + "\" in line " + std::to_string(ln) + ".");
 }
 
 // multiple definition
 void Parser::err_mul_def(const std::string nm, const size_t ln) const {
-    std::cout << "error: Multiple definitions or keybindings of \"" << nm
-              << "\" in line " << ln << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Multiple definitions or keybindings of \"" + nm + "\" in line " + std::to_string(ln) + ".");
 }
 
 // divisor is zero
 void Parser::err_zero_divisor(const size_t ln) const {
-    std::cout << "error: Divisor is zero in line " << ln << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Divisor is zero in line " + std::to_string(ln) + ".");
 }
 
 // arity mismatch
 void Parser::err_arity_mis(const std::string nm, const size_t ln) const {
-    std::cout << "error: Arity mismatch of command \"" << nm << "\" in line "
-              << ln << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Arity mismatch of command \"" + nm + "\" in line " + std::to_string(ln) + ".");
 }
 
 // kind mismatch
 void Parser::err_type_mis(const std::string nm, const size_t ln) const {
-    std::cout << "error: Kind mismatch of command \"" << nm << "\" in line " << ln
-              << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Kind mismatch of command \"" + nm + "\" in line " + std::to_string(ln) + ".");
 }
 
 void Parser::err_neg_param(const size_t ln) const {
-    std::cout << "error: Negative parameter in line " << ln << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Negative parameter in line " + std::to_string(ln) + ".");
 }
 
 // keyword error
 void Parser::err_keyword(const std::string nm, const size_t ln) const {
-    std::cout << "error: keyword mismatch of command \"" << nm << "\" in line "
-              << ln << '.' << std::endl;
-    exit(0);
+    throw std::runtime_error("error: keyword mismatch of command \"" + nm + "\" in line " + std::to_string(ln) + ".");
 }
 
 /*
@@ -2679,8 +2653,7 @@ global errors
 */
 // cannot open file
 void Parser::err_open_file(const std::string filename) const {
-    std::cout << "error: Cannot open file \"" << filename << "\"." << std::endl;
-    exit(0);
+    throw std::runtime_error("error: Cannot open file \"" + filename + "\".");
 }
 
 std::shared_ptr<DAGNode> Parser::rename(std::shared_ptr<DAGNode> expr,

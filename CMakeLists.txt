@@ -49,6 +49,26 @@ set(BUILD_SHARED_LIBS OFF)
 
 project(SMTStabilizer)
 
+enable_testing()
+
+find_package(Doxygen QUIET)
+if (DOXYGEN_FOUND)
+    set(DOXYGEN_INPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/api)
+    set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/docs)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(docs
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM)
+else()
+    add_custom_target(docs
+        COMMAND ${CMAKE_COMMAND} -E echo "Doxygen was not found; install doxygen to build the docs target."
+        COMMAND ${CMAKE_COMMAND} -E false
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM)
+endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/submodules/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -60,8 +80,10 @@ set(ALL_LIBRARIES
 
 # add_subdirectory(src/kernel)
 add_subdirectory(src/main)
+add_subdirectory(src/api)
 add_subdirectory(src/util)
 # add_subdirectory(src/rewrite)
 add_subdirectory(src/parser)
 add_subdirectory(src/kernel)
 add_subdirectory(src/node)
+add_subdirectory(test)

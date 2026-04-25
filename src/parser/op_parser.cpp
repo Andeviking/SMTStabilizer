@@ -299,9 +299,7 @@ Parser::mkInternalOper(const std::shared_ptr<Sort> &sort, const NODE_KIND &t, co
         if (child->isFuncDef()) {
             // Found a function definition or declaration, apply it with parameters
             if (child->getChildrenSize() != 1) {
-                std::cout << "Error: function " << child->getName()
-                          << " is not fully defined." << std::endl;
-                exit(1);
+                throw std::runtime_error("Error: function " + child->getName() + " is not fully defined.");
             }
             child = child->getFuncBody();
         }
