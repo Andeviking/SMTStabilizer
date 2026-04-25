@@ -1,0 +1,5 @@
+<map id="stabilizer_handle" name="stabilizer_handle">
+<area shape="rect" id="node1" title=" " alt="" coords="41,199,159,225"/>
+<area shape="rect" id="node2" href="$dd/dd5/classstabilizer_1_1api_1_1SMTStabilizer.html" title="High&#45;level facade for stabilizing SMT&#45;LIB2 inputs." alt="" coords="5,109,195,136"/>
+<area shape="rect" id="node3" href="$dd/dc3/classstabilizer_1_1api_1_1SMTStabilizerOptions.html" title="Public options for the SMTStabilizer API." alt="" coords="5,5,195,47"/>
+</map>
