@@ -21,7 +21,7 @@ jobs:
   build-windows:
     runs-on: windows-latest
     env:
-      VCPKG_ROOT: ${{ runner.temp }}/vcpkg
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
     steps:
       - name: Checkout repository
