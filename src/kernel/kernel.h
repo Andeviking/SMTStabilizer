@@ -27,11 +27,38 @@
 // #include "node/node.h"
 #include "node/node_manager.h"
 namespace stabilizer::kernel {
+
+/**
+ * @brief Internal canonicalization kernel for SMTStabilizer.
+ *
+ * The kernel owns graph-oriented views over the assertion DAG and applies
+ * multi-stage hash propagation to derive a deterministic symbol/function
+ * ordering. It is intentionally documented for maintainers even though most
+ * stage methods are private.
+ */
 class Kernel {
   public:
     Kernel() = delete;
+
+    /**
+     * @brief Build kernel state from the current node manager assertions.
+     * @param nm Node manager that provides the DAG roots and symbol tables.
+     * @param context_propagation Enable fixed-point context propagation.
+     * @param symmetry_breaking_perturbation Enable iterative subgraph-based
+     * tie breaking for colliding symbols.
+     */
     Kernel(node::NodeManager &nm, const bool &context_propagation = true, const bool &symmetry_breaking_perturbation = true);
 
+    /**
+     * @brief Run the full stabilization pass and mutate node manager state.
+     *
+     * Side effects include:
+     * - Renaming symbols and UF/function declarations to canonical names.
+     * - Reordering assertions and selected declaration blocks.
+     * - Updating datatype and sort naming maps when applicable.
+     *
+     * @param nm Node manager to be rewritten in place.
+     */
     void apply(node::NodeManager &nm);
 
   private:
@@ -57,13 +84,43 @@ class Kernel {
     bool d_context_propagation = true;
     bool d_symmetry_breaking_perturbation = true;
 
+    /**
+     * @brief Check whether node kind at index @p i is treated as commutative.
+     * @param i Node index in the internal node vector.
+     * @param from_cache Use cached commutativity when true.
+     */
     bool is_commutative(const size_t &i, const bool &from_cache = true);
     // void context_propagate();
+
+    /**
+     * @brief Run propagation to a fixed point over a selected subgraph.
+     * @param processing Node indices participating in propagation.
+     * @param symbols Symbol indices monitored for convergence.
+     */
     void context_propagate(const std::vector<size_t> &processing, const std::vector<size_t> &symbols);
+
+    /**
+     * @brief Apply local perturbation to break remaining hash collisions.
+     */
     void specific_propagate();
+
+    /**
+     * @brief Keep only currently ambiguous graph regions for next iteration.
+     */
     void rebuild_graph();  // graph symbols
+
+    /**
+     * @brief Incorporate sort/datatype structure into propagation and naming.
+     * @param sort_key_map Mutable sort name map from node manager/parser.
+     * @param datatype_blocks Mutable datatype declaration blocks.
+     */
     void sort_propagate(std::unordered_map<std::string, node::Sort> &sort_key_map, std::vector<std::vector<parser::Parser::DTTypeDecl>> &datatype_blocks);
     // void propagate();
+
+    /**
+     * @brief One directional propagation pass on the selected nodes.
+     * @param processing Node indices to process in the current round.
+     */
     void propagate(const std::vector<size_t> &processing);
 };
 }  // namespace stabilizer::kernel

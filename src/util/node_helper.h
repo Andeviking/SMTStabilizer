@@ -26,10 +26,42 @@
 #include "node/node_manager.h"
 namespace stabilizer::util {
 
+/**
+ * @brief Compute a stable structural hash seed for a parser/node DAG node.
+ *
+ * The hash is used as an initial value before propagation-based refinement in
+ * the kernel stages.
+ */
 size_t hash_node(const node::Node &node);
 
+/**
+ * @brief Mix one value into a hash seed.
+ * @param seed Hash accumulator to update.
+ * @param v Value to combine.
+ */
 void hash_combine(size_t &seed, const size_t &v);
+
+/**
+ * @brief Mix child-node hashes into a parent seed in argument order.
+ * @param seed Parent hash accumulator to update.
+ * @param children Child indices.
+ * @param hash_table Per-node hash table.
+ */
 void hash_children(size_t &seed, const std::vector<size_t> &children, const std::vector<size_t> &hash_table);
+
+/**
+ * @brief Mix child-node hashes as a commutative multiset.
+ * @param seed Parent hash accumulator to update.
+ * @param children Child indices.
+ * @param hash_table Per-node hash table.
+ */
 void hash_communative_children(size_t &seed, const std::vector<size_t> &children, const std::vector<size_t> &hash_table);
+
+/**
+ * @brief Propagate a node hash contribution to parent nodes.
+ * @param seed Node hash contribution to propagate.
+ * @param parents Parent metadata as (parent_index, operand_position).
+ * @param hash_table Per-node hash table.
+ */
 void hash_parents(size_t &seed, const std::vector<std::pair<size_t, size_t>> &parents, const std::vector<size_t> &hash_table);
 }  // namespace stabilizer::util

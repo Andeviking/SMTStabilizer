@@ -35,6 +35,15 @@
 #include "util/node_helper.h"
 
 namespace stabilizer::kernel {
+
+/**
+ * @brief Construct graph caches and reverse-topological node storage.
+ *
+ * Algorithm outline:
+ * 1. Traverse assertion roots and collect reachable DAG nodes.
+ * 2. Build forward and reverse adjacency with operator-position metadata.
+ * 3. Classify symbol-like nodes and initialize base hash seeds.
+ */
 Kernel::Kernel(node::NodeManager &nm, const bool &context_propagation, const bool &symmetry_breaking_perturbation) : d_context_propagation(context_propagation), d_symmetry_breaking_perturbation(symmetry_breaking_perturbation) {
     std::vector<node::Node> visit(nm.assertions());
     std::unordered_map<node::Node, size_t> node2index;
@@ -186,6 +195,12 @@ void Kernel::propagate(const std::vector<size_t> &processing) {
     }
 }
 
+/**
+ * @brief Repeat propagation until symbol hash cardinality converges.
+ *
+ * The stage tracks unique symbol hashes after each round and stops when the
+ * number of unique values no longer increases.
+ */
 void Kernel::context_propagate(const std::vector<size_t> &processing, const std::vector<size_t> &symbols) {
     size_t hash_count = 0, prev_hash_count = 0;
     std::vector<size_t> unique_hashes(symbols.size());
@@ -201,6 +216,15 @@ void Kernel::context_propagate(const std::vector<size_t> &processing, const std:
     } while (prev_hash_count != hash_count);
 }
 
+/**
+ * @brief Resolve collisions within connected regions by targeted perturbation.
+ *
+ * Algorithm outline:
+ * 1. Explore one unvisited symbol region at a time.
+ * 2. Compute region fingerprint and inject region-level tie-break data.
+ * 3. If duplicate symbol hashes remain, perturb one selected symbol and rerun
+ *    context propagation on the region.
+ */
 void Kernel::specific_propagate() {
     std::unordered_map<size_t, size_t> hash_count;
 
@@ -272,6 +296,12 @@ void Kernel::specific_propagate() {
         d_visited.at(node) = false;
 }
 
+/**
+ * @brief Rebuild active processing graph to unresolved nodes only.
+ *
+ * Nodes with unique hash values are pruned from subsequent iterations; the
+ * remaining ambiguous nodes keep only edges to other ambiguous nodes.
+ */
 void Kernel::rebuild_graph() {
     std::unordered_map<size_t, size_t> hash_count;
     for (const auto &node : d_processing)
@@ -319,6 +349,13 @@ void Kernel::rebuild_graph() {
     // std::cout << d_processing.size() << std::endl;
 }
 
+/**
+ * @brief Propagate sort/datatype constraints into hash refinement.
+ *
+ * This stage temporarily augments the graph with sort vertices, stabilizes
+ * their ordering, renames sort/datatype symbols, and then restores core graph
+ * structures while keeping updated hash information.
+ */
 void Kernel::sort_propagate(std::unordered_map<std::string, node::Sort> &sort_key_map, std::vector<std::vector<parser::Parser::DTTypeDecl>> &datatype_blocks) {
     std::unordered_map<std::string, node::Sort> new_sort_key_map;
     std::unordered_map<node::Sort, size_t> tmp_dts;
@@ -500,6 +537,15 @@ void Kernel::sort_propagate(std::unordered_map<std::string, node::Sort> &sort_ke
     d_is_commutative.swap(is_commutative);
 }
 
+/**
+ * @brief Execute the full kernel pipeline on node manager state.
+ *
+ * High-level flow:
+ * 1. Seed hashes for function definitions and run global context propagation.
+ * 2. Optionally refine with sort/datatype-aware propagation.
+ * 3. Resolve collisions via specific propagation and graph rebuild rounds.
+ * 4. Canonicalize symbol/function names and reorder declarations/assertions.
+ */
 void Kernel::apply(node::NodeManager &nm) {
     std::vector<std::string> &function_names = nm.getFunctionNames();
     std::unordered_map<std::string, std::shared_ptr<stabilizer::parser::DAGNode>> &function_key_map = nm.getFunKeyMap();

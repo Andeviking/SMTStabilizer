@@ -700,12 +700,60 @@ class Parser {
     //  */
     // std::shared_ptr<DAGNode> simp_oper(const NODE_KIND& t, const
     // std::vector<std::shared_ptr<DAGNode>>& p);
+
+    /**
+     * @brief Rewrite unary operation node when simplification rule applies.
+     * @param t Operation kind (may be updated during rewrite).
+     * @param p Operand node.
+     * @return Rewritten node, or nullptr when no rewrite is applied.
+     */
     std::shared_ptr<DAGNode> rewrite(NODE_KIND &t, std::shared_ptr<DAGNode> &p);
+
+    /**
+     * @brief Rewrite binary operation node when simplification rule applies.
+     * @param t Operation kind (may be updated during rewrite).
+     * @param l Left operand.
+     * @param r Right operand.
+     * @return Rewritten node, or nullptr when no rewrite is applied.
+     */
     std::shared_ptr<DAGNode> rewrite(NODE_KIND &t, std::shared_ptr<DAGNode> &l, std::shared_ptr<DAGNode> &r);
+
+    /**
+     * @brief Rewrite ternary operation node when simplification rule applies.
+     * @param t Operation kind (may be updated during rewrite).
+     * @param l First operand.
+     * @param m Second operand.
+     * @param r Third operand.
+     * @return Rewritten node, or nullptr when no rewrite is applied.
+     */
     std::shared_ptr<DAGNode> rewrite(NODE_KIND &t, std::shared_ptr<DAGNode> &l, std::shared_ptr<DAGNode> &m, std::shared_ptr<DAGNode> &r);
+
+    /**
+     * @brief Rewrite four-operand operation node when simplification rule applies.
+     * @param t Operation kind (may be updated during rewrite).
+     * @param l First operand.
+     * @param ml Second operand.
+     * @param mr Third operand.
+     * @param r Fourth operand.
+     * @return Rewritten node, or nullptr when no rewrite is applied.
+     */
     std::shared_ptr<DAGNode> rewrite(NODE_KIND &t, std::shared_ptr<DAGNode> &l, std::shared_ptr<DAGNode> &ml, std::shared_ptr<DAGNode> &mr, std::shared_ptr<DAGNode> &r);
+
+    /**
+     * @brief Rewrite variadic operation node when simplification rule applies.
+     * @param t Operation kind (may be updated during rewrite).
+     * @param p Operand list.
+     * @return Rewritten node, or nullptr when no rewrite is applied.
+     */
     std::shared_ptr<DAGNode> rewrite(NODE_KIND &t,
                                      std::vector<std::shared_ptr<DAGNode>> &p);
+
+    /**
+     * @brief Core operation rewrite helper used before node-manager creation.
+     * @param t Operation kind (may be updated during rewrite).
+     * @param p Operand list.
+     * @return Rewritten node, or nullptr when caller should create a fresh node.
+     */
     std::shared_ptr<DAGNode>
     rewrite_oper(NODE_KIND &t, std::vector<std::shared_ptr<DAGNode>> &p);
 
@@ -748,7 +796,14 @@ class Parser {
         else
             return node_manager->createNode(sort, t, name, params);
     }
+    /**
+     * @brief Check whether an operation kind is treated as commutative.
+     */
     static bool isCommutative(NODE_KIND t);
+
+    /**
+     * @brief Return sorted operand list for deterministic commutative handling.
+     */
     static std::vector<std::shared_ptr<DAGNode>>
     sortParams(const std::vector<std::shared_ptr<DAGNode>> &p);
     // std::shared_ptr<DAGNode> mkNode(std::shared_ptr<Sort> sort, NODE_KIND t,

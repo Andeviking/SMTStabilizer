@@ -42,6 +42,9 @@
 namespace stabilizer::parser {
 
 // Type checking utilities
+/**
+ * @brief Lexical classifiers for SMT-LIB literals and token shapes.
+ */
 class TypeChecker {
   public:
     static bool isInt(const std::string &str);
@@ -54,6 +57,9 @@ class TypeChecker {
 };
 
 // Mathematical utilities
+/**
+ * @brief Numeric helper wrappers shared by parser-side evaluation and rewrite.
+ */
 class MathUtils {
   public:
     static Integer pow(const Integer &base, const Integer &exp);
@@ -74,6 +80,9 @@ class MathUtils {
 };
 
 // Bit vector utilities
+/**
+ * @brief Bitvector conversion and arithmetic helpers on SMT bitstring forms.
+ */
 class BitVectorUtils {
   public:
     static Integer bvToNat(const std::string &bv);
@@ -125,6 +134,9 @@ class BitVectorUtils {
 };
 
 // Floating point utilities
+/**
+ * @brief Floating-point conversion helpers used by parser evaluation paths.
+ */
 class FloatingPointUtils {
   public:
     static std::string fpToUbv(const std::string &fp, const Integer &n);
@@ -132,6 +144,9 @@ class FloatingPointUtils {
 };
 
 // String utilities
+/**
+ * @brief String theory helper functions for SMT string operators.
+ */
 class StringUtils {
   public:
     static std::string strSubstr(const std::string &s, const Integer &i, const Integer &j);
@@ -155,6 +170,9 @@ class StringUtils {
 };
 
 // Conversion utilities
+/**
+ * @brief Conversion and escaping helpers for parser I/O and literals.
+ */
 class ConversionUtils {
   public:
     static std::string toString(const Integer &i);

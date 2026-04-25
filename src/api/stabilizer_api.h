@@ -69,6 +69,13 @@ class SMTStabilizerOptions {
  * The facade accepts either a file path or an SMT-LIB2 script string, runs the
  * existing parser/node/kernel pipeline, and returns the normalized SMT2 text.
  *
+ * API-to-kernel boundary:
+ * - API methods validate input and instantiate parser state.
+ * - run_pipeline creates node::NodeManager, simplifies assertions, and then
+ *   transfers control to kernel::Kernel::apply.
+ * - Kernel remains an internal implementation detail; only API options and
+ *   stable return types are exposed to integrators.
+ *
  * Instances are cheap to copy and can be configured independently.
  */
 class SMTStabilizer {
@@ -101,7 +108,12 @@ class SMTStabilizer {
   private:
     SMTStabilizerOptions d_options;
 
+    /** Configure parser-global options before pipeline execution. */
     static void configure_parser(stabilizer::parser::Parser &parser, const SMTStabilizerOptions &options);
+
+    /**
+     * Run parser -> node manager -> kernel pipeline and serialize final output.
+     */
     static std::string run_pipeline(stabilizer::parser::Parser &parser, const SMTStabilizerOptions &options);
 };
 

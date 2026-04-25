@@ -116,6 +116,17 @@ int main(void) {
 ```
 
 ## Documentation
+### Installing Doxygen
+
+#### Ubuntu/Debian
+```bash
+sudo apt-get install doxygen
+```
+
+#### CentOS/RHEL
+```bash
+sudo yum install doxygen
+```
 
 Generate the API documentation with the dedicated CMake target:
 

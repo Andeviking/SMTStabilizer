@@ -46,4 +46,7 @@ build/
 .venv/
 .vscode/
 test/
-docs/
+docs/*
+!docs/.gitkeep
+!docs/pages/
+!docs/pages/**

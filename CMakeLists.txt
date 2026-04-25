@@ -53,7 +53,17 @@ enable_testing()
 
 find_package(Doxygen QUIET)
 if (DOXYGEN_FOUND)
-    set(DOXYGEN_INPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/api)
+    set(DOXYGEN_INPUT_DIRS
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/api
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/parser
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/util
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/pages
+        ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+    string(REPLACE ";" " " DOXYGEN_INPUT "${DOXYGEN_INPUT_DIRS}")
+    set(DOXYGEN_MAINPAGE ${CMAKE_CURRENT_SOURCE_DIR}/docs/pages/mainpage.md)
+    set(DOXYGEN_TAGFILE ${CMAKE_CURRENT_BINARY_DIR}/SMTStabilizer.tag)
+    set(DOXYGEN_WARN_LOGFILE ${CMAKE_CURRENT_BINARY_DIR}/doxygen_warnings.log)
     set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/docs)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
     add_custom_target(docs
