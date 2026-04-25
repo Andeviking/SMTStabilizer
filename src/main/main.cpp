@@ -63,15 +63,15 @@ int main(int argc, char *argv[]) {
     // rewriter.apply();
 
     stabilizer::kernel::Kernel kernel(nm, context_propagation, symmetry_breaking_perturbation);
-    struct timespec t_start, t_end;
-    if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t_start))
-        perror("clock gettime");
+    // struct timespec t_start, t_end;
+    // if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t_start))
+    //     perror("clock gettime");
 
     kernel.apply(nm);
 
-    if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t_end))
-        perror("clock gettime");
-    double time_used = (t_end.tv_sec - t_start.tv_sec) + (t_end.tv_nsec - t_start.tv_nsec) / 1e9;
+    // if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t_end))
+    //     perror("clock gettime");
+    // double time_used = (t_end.tv_sec - t_start.tv_sec) + (t_end.tv_nsec - t_start.tv_nsec) / 1e9;
     // std::cout << std::fixed << std::setprecision(2) << time_used << std::endl;
     std::cout << nm.to_string() << std::endl;
     return 0;

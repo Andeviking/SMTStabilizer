@@ -1,7 +1,10 @@
 # SMTStabilizer
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Docs](https://img.shields.io/badge/docs-Doxygen-informational.svg)](docs/)
+[![Linux](https://github.com/andeviking/SMTStabilizer/actions/workflows/Linux.yml/badge.svg)](https://github.com/andeviking/SMTStabilizer/actions/workflows/Linux.yml)
+[![macOS](https://github.com/andeviking/SMTStabilizer/actions/workflows/macOS.yml/badge.svg)](https://github.com/andeviking/SMTStabilizer/actions/workflows/macOS.yml)
+[![Windows](https://github.com/andeviking/SMTStabilizer/actions/workflows/Windows.yml/badge.svg)](https://github.com/andeviking/SMTStabilizer/actions/workflows/Windows.yml)
+[![Documentation](https://github.com/andeviking/SMTStabilizer/actions/workflows/docs.yml/badge.svg)](https://github.com/andeviking/SMTStabilizer/actions/workflows/docs.yml)
 [![Pages](https://img.shields.io/badge/pages-live-informational.svg)](https://andeviking.github.io/SMTStabilizer/)
 
 SMTStabilizer is a normalization tool for SMT-LIB2 inputs. It reduces runtime

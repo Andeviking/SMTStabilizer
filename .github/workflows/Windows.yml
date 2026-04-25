@@ -1,0 +1,82 @@
+name: Windows
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VCPKG_REF: '2025.12.12'
+  VCPKG_TRIPLET: x64-windows
+  VCPKG_ROOT: ${{ runner.temp }}/vcpkg
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup vcpkg
+        shell: pwsh
+        run: |
+          git clone --branch $env:VCPKG_REF --depth 1 https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+          & "$env:VCPKG_ROOT/bootstrap-vcpkg.bat"
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/downloads
+            ${{ env.VCPKG_ROOT }}/installed
+            ${{ github.workspace }}/vcpkg_installed
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}-
+
+      - name: Show vcpkg version
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_ROOT/vcpkg.exe" version
+
+      - name: Install Windows dependencies
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_ROOT/vcpkg.exe" install --triplet "$env:VCPKG_TRIPLET"
+
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          cmake -S . -B build `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF `
+            -DSMTSTABILIZER_FORCE_FULLY_STATIC=OFF `
+            -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TRIPLET" `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Save vcpkg cache
+        if: steps.vcpkg-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/downloads
+            ${{ env.VCPKG_ROOT }}/installed
+          key: ${{ steps.vcpkg-cache-restore.outputs.cache-primary-key }}
+
+      - name: Build
+        shell: pwsh
+        run: cmake --build build --config Release --parallel
+
+      - name: Run tests
+        shell: pwsh
+        run: ctest --test-dir build --output-on-failure -C Release
