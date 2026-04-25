@@ -68,7 +68,11 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${SPEED_FLAGS}")
 
 project(SMTStabilizer)
 
-enable_testing()
+option(BUILD_DOCS_ONLY "Only build Doxygen documentation, skip library checks and compilation" OFF)
+
+if(NOT BUILD_DOCS_ONLY)
+    enable_testing()
+endif()
 
 find_package(Doxygen QUIET)
 if (DOXYGEN_FOUND)
@@ -98,46 +102,49 @@ else()
         VERBATIM)
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+if (NOT BUILD_DOCS_ONLY)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-if (SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/submodules/include)
-    set(ALL_LIBRARIES
-        ${CMAKE_SOURCE_DIR}/submodules/lib/libmpfr.a
-        ${CMAKE_SOURCE_DIR}/submodules/lib/libgmp.a
-        ${CMAKE_SOURCE_DIR}/submodules/lib/libgmpxx.a)
-    foreach(LIB_FILE IN LISTS ALL_LIBRARIES)
-        if (NOT EXISTS ${LIB_FILE})
+    if (SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS)
+        include_directories(${CMAKE_CURRENT_SOURCE_DIR}/submodules/include)
+        set(ALL_LIBRARIES
+            ${CMAKE_SOURCE_DIR}/submodules/lib/libmpfr.a
+            ${CMAKE_SOURCE_DIR}/submodules/lib/libgmp.a
+            ${CMAKE_SOURCE_DIR}/submodules/lib/libgmpxx.a)
+        foreach(LIB_FILE IN LISTS ALL_LIBRARIES)
+            if (NOT EXISTS ${LIB_FILE})
+                message(FATAL_ERROR
+                    "Bundled library not found: ${LIB_FILE}. "
+                    "Either initialize bundled dependencies or configure with "
+                    "-DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF to use system libraries.")
+            endif()
+        endforeach()
+    else()
+        find_path(GMP_INCLUDE_DIR gmp.h)
+        find_path(MPFR_INCLUDE_DIR mpfr.h)
+        find_library(GMP_LIBRARY NAMES gmp libgmp)
+        find_library(GMPXX_LIBRARY NAMES gmpxx libgmpxx)
+        find_library(MPFR_LIBRARY NAMES mpfr libmpfr)
+
+        if (NOT GMP_INCLUDE_DIR OR NOT MPFR_INCLUDE_DIR OR NOT GMP_LIBRARY OR NOT GMPXX_LIBRARY OR NOT MPFR_LIBRARY)
             message(FATAL_ERROR
-                "Bundled library not found: ${LIB_FILE}. "
-                "Either initialize bundled dependencies or configure with "
-                "-DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF to use system libraries.")
+                "Unable to find GMP/MPFR development files. "
+                "Install platform packages (Linux: libgmp-dev libmpfr-dev, macOS: brew install gmp mpfr), "
+                "or on Windows use vcpkg and pass its toolchain file to CMake.")
         endif()
-    endforeach()
-else()
-    find_path(GMP_INCLUDE_DIR gmp.h)
-    find_path(MPFR_INCLUDE_DIR mpfr.h)
-    find_library(GMP_LIBRARY NAMES gmp libgmp)
-    find_library(GMPXX_LIBRARY NAMES gmpxx libgmpxx)
-    find_library(MPFR_LIBRARY NAMES mpfr libmpfr)
 
-    if (NOT GMP_INCLUDE_DIR OR NOT MPFR_INCLUDE_DIR OR NOT GMP_LIBRARY OR NOT GMPXX_LIBRARY OR NOT MPFR_LIBRARY)
-        message(FATAL_ERROR
-            "Unable to find GMP/MPFR development files. "
-            "Install platform packages (Linux: libgmp-dev libmpfr-dev, macOS: brew install gmp mpfr), "
-            "or on Windows use vcpkg and pass its toolchain file to CMake.")
+        include_directories(${GMP_INCLUDE_DIR} ${MPFR_INCLUDE_DIR})
+        set(ALL_LIBRARIES ${MPFR_LIBRARY} ${GMPXX_LIBRARY} ${GMP_LIBRARY})
     endif()
 
-    include_directories(${GMP_INCLUDE_DIR} ${MPFR_INCLUDE_DIR})
-    set(ALL_LIBRARIES ${MPFR_LIBRARY} ${GMPXX_LIBRARY} ${GMP_LIBRARY})
-endif()
 
-# add_subdirectory(src/kernel)
-add_subdirectory(src/main)
-add_subdirectory(src/api)
-add_subdirectory(src/util)
-# add_subdirectory(src/rewrite)
-add_subdirectory(src/parser)
-add_subdirectory(src/kernel)
-add_subdirectory(src/node)
-add_subdirectory(test)
+    # add_subdirectory(src/kernel)
+    add_subdirectory(src/main)
+    add_subdirectory(src/api)
+    add_subdirectory(src/util)
+    # add_subdirectory(src/rewrite)
+    add_subdirectory(src/parser)
+    add_subdirectory(src/kernel)
+    add_subdirectory(src/node)
+    add_subdirectory(test)
+endif()
