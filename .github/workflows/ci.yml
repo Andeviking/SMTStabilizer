@@ -16,8 +16,6 @@ jobs:
     env:
       VCPKG_REF: '2025.12.12'
       VCPKG_TRIPLET: x64-windows
-      GMP_VERSION: '6.3.0'
-      MPFR_VERSION: '4.2.2'
     strategy:
       fail-fast: false
       matrix:
@@ -56,7 +54,7 @@ jobs:
           path: |
             ${{ runner.temp }}/vcpkg/installed
             ${{ runner.temp }}/vcpkg/downloads
-          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}-gmp-${{ env.GMP_VERSION }}-mpfr-${{ env.MPFR_VERSION }}
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ env.VCPKG_REF }}-${{ env.VCPKG_TRIPLET }}-
 
@@ -64,7 +62,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          & "$env:VCPKG_ROOT/vcpkg.exe" install --triplet $env:VCPKG_TRIPLET
+          & "$env:VCPKG_ROOT/vcpkg.exe" install gmp mpfr --triplet $env:VCPKG_TRIPLET
 
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
