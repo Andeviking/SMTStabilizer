@@ -758,6 +758,9 @@ HighPrecisionInteger::HighPrecisionInteger(long i) : value(i) {}
 
 HighPrecisionInteger::HighPrecisionInteger(unsigned long i) : value(i) {}
 
+HighPrecisionInteger::HighPrecisionInteger(unsigned long long i)
+    : value(std::to_string(i)) {}
+
 HighPrecisionInteger::HighPrecisionInteger(double d) : value(d) {}
 
 HighPrecisionInteger::HighPrecisionInteger(const std::string &s, int base) {

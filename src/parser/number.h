@@ -34,6 +34,7 @@
 #include <gmpxx.h>
 #include <mpfr.h>
 
+#include <cstddef>
 #include <string>
 
 #include "asserting.h"
@@ -54,6 +55,7 @@ class HighPrecisionInteger {
     HighPrecisionInteger(int i);
     HighPrecisionInteger(long i);
     HighPrecisionInteger(unsigned long i);
+    HighPrecisionInteger(unsigned long long i);
     HighPrecisionInteger(double d);
     HighPrecisionInteger(const std::string &s, int base = 10);
     HighPrecisionInteger(const char *s, int base = 10);
@@ -266,6 +268,10 @@ class HighPrecisionReal {
 };
 
 typedef HighPrecisionReal Real;
+
+#ifdef INFINITY
+#undef INFINITY
+#endif
 
 // A unified type that can represent both integers and reals
 class Number {

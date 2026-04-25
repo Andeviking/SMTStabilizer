@@ -20,6 +20,8 @@
 
 cmake_minimum_required(VERSION 3.16)
 
+project(SMTStabilizer)
+
 set(BUILD_SHARED_LIBS OFF)
 
 set(SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS_DEFAULT ON)
@@ -65,8 +67,6 @@ endif()
 string(REPLACE ";" " " SPEED_FLAGS "${SPEED_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${SPEED_FLAGS}")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${SPEED_FLAGS}")
-
-project(SMTStabilizer)
 
 option(BUILD_DOCS_ONLY "Only build Doxygen documentation, skip library checks and compilation" OFF)
 

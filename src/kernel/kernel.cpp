@@ -80,7 +80,7 @@ Kernel::Kernel(node::NodeManager &nm, const bool &context_propagation, const boo
                     child->getKind() == stabilizer::parser::NODE_KIND::NT_FP_MUL ||
                     child->getKind() == stabilizer::parser::NODE_KIND::NT_EXISTS ||
                     child->getKind() == stabilizer::parser::NODE_KIND::NT_FORALL)
-                    d_reversed_graph.at(child_index).emplace_back(d_nodes.size() - 1, std::min(i, 0ul));
+                    d_reversed_graph.at(child_index).emplace_back(d_nodes.size() - 1, std::min<size_t>(i, 0));
                 else
                     d_reversed_graph.at(child_index).emplace_back(d_nodes.size() - 1, d_is_commutative.back() ? 0 : i);
             }
