@@ -59,7 +59,7 @@ Additional dependency note:
 python3 setup.py
 ```
 
-### Windows (same as CI)
+### Windows (PowerShell)
 
 Install dependencies with vcpkg:
 
@@ -70,7 +70,12 @@ vcpkg install gmp mpfr --triplet x64-windows
 Then configure, build, and test:
 
 ```powershell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF -DSMTSTABILIZER_FORCE_FULLY_STATIC=OFF -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+cmake -S . -B build `
+	-DCMAKE_BUILD_TYPE=Release `
+	-DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF `
+	-DSMTSTABILIZER_FORCE_FULLY_STATIC=OFF `
+	-DVCPKG_TARGET_TRIPLET="$env:VCPKG_TRIPLET" `
+	-DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 cmake --build build --config Release --parallel
 ```
 
