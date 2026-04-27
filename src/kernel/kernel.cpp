@@ -32,6 +32,7 @@
 
 #include "node/node_manager.h"
 #include "parser/kind.h"
+#include "parser/sort.h"
 #include "util/node_helper.h"
 
 namespace stabilizer::kernel {
@@ -386,6 +387,17 @@ void Kernel::sort_propagate(std::unordered_map<std::string, node::Sort> &sort_ke
     }
 
     for (size_t i = 0, isz = d_nodes.size(); i < isz; ++i) {
+        if (d_nodes.at(i)->getSort()->children.empty())
+            continue;
+        for (auto &child_sort : d_nodes.at(i)->getSort()->children) {
+            if ((child_sort->isDec() || child_sort->isDatatype()) && sort_idx.find(child_sort) == sort_idx.end()) {
+                new_sort_key_map.emplace("UNUSED_SORT", child_sort);
+                child_sort->setName("UNUSED_SORT");
+            }
+        }
+    }
+
+    for (size_t i = 0, isz = d_nodes.size(); i < isz; ++i) {
         graph.emplace_back(d_graph.at(i));
         reversed_graph.emplace_back(d_reversed_graph.at(i));
         for (auto &child : graph.back()) {
@@ -509,16 +521,30 @@ void Kernel::sort_propagate(std::unordered_map<std::string, node::Sort> &sort_ke
                 for (auto &cd : td.ctors) {
                     if (uf_name_id.find(cd.name) != uf_name_id.end()) {
                         util::hash_combine(d_hash_table.at(uf_name_id.at(cd.name)), std::hash<std::string>{}(td.name));
-                        for (auto &sd : cd.selectors) {
+                        // for (auto &sd : cd.selectors) {
+                        //     if (uf_name_id.find(sd.name) != uf_name_id.end()) {
+                        //         util::hash_combine(d_hash_table.at(uf_name_id.at(sd.name)), d_hash_table.at(uf_name_id.at(cd.name)));
+                        //     }
+                        // }
+                        for (size_t i = 0, isz = cd.selectors.size(); i < isz; ++i) {
+                            auto &sd = cd.selectors.at(i);
                             if (uf_name_id.find(sd.name) != uf_name_id.end()) {
                                 util::hash_combine(d_hash_table.at(uf_name_id.at(sd.name)), d_hash_table.at(uf_name_id.at(cd.name)));
+                                util::hash_combine(d_hash_table.at(uf_name_id.at(sd.name)), i);
                             }
                         }
                     }
                     else {
-                        for (auto &sd : cd.selectors) {
+                        // for (auto &sd : cd.selectors) {
+                        //     if (uf_name_id.find(sd.name) != uf_name_id.end()) {
+                        //         util::hash_combine(d_hash_table.at(uf_name_id.at(sd.name)), std::hash<std::string>{}(td.name));
+                        //     }
+                        // }
+                        for (size_t i = 0, isz = cd.selectors.size(); i < isz; ++i) {
+                            auto &sd = cd.selectors.at(i);
                             if (uf_name_id.find(sd.name) != uf_name_id.end()) {
                                 util::hash_combine(d_hash_table.at(uf_name_id.at(sd.name)), std::hash<std::string>{}(td.name));
+                                util::hash_combine(d_hash_table.at(uf_name_id.at(sd.name)), i);
                             }
                         }
                     }
@@ -565,7 +591,7 @@ void Kernel::apply(node::NodeManager &nm) {
     context_propagate(d_processing, d_symbols);
     d_context_hash = d_hash_table;
 
-    if (std::any_of(d_nodes.begin(), d_nodes.end(), [this](const node::Node &node) { return node->getSort()->isDec(); })) {
+    if (std::any_of(d_nodes.begin(), d_nodes.end(), [this](const node::Node &node) { return node->getSort()->isDec() || node->getSort()->isDatatype(); })) {
         sort_propagate(nm.getSortNames(), nm.getDatatypeBlocks());
     }
     else {
@@ -738,30 +764,30 @@ void Kernel::apply(node::NodeManager &nm) {
                 //         std::cout << sd.name << ' ' << sd.sort->toString() << std::endl;
                 //     }
                 // }
-                {
-                    std::unordered_map<node::Sort, std::vector<decltype(cd.selectors)::value_type>> buckets;
-                    buckets.reserve(cd.selectors.size());
-                    for (const auto &sd : cd.selectors) {
-                        buckets[sd.sort].push_back(sd);
-                    }
+                // {
+                //     std::unordered_map<node::Sort, std::vector<decltype(cd.selectors)::value_type>> buckets;
+                //     buckets.reserve(cd.selectors.size());
+                //     for (const auto &sd : cd.selectors) {
+                //         buckets[sd.sort].push_back(sd);
+                //     }
 
-                    for (auto &[s, vec] : buckets) {
-                        std::sort(vec.begin(), vec.end(), [](const auto &a, const auto &b) {
-                            return a.name < b.name;
-                        });
-                    }
+                //     for (auto &[s, vec] : buckets) {
+                //         std::sort(vec.begin(), vec.end(), [](const auto &a, const auto &b) {
+                //             return a.name < b.name;
+                //         });
+                //     }
 
-                    std::unordered_map<node::Sort, size_t> idx;
-                    idx.reserve(buckets.size());
-                    std::vector<decltype(cd.selectors)::value_type> reordered;
-                    reordered.reserve(cd.selectors.size());
-                    for (const auto &sd : cd.selectors) {
-                        auto &i = idx[sd.sort];
-                        reordered.emplace_back(buckets[sd.sort][i]);
-                        ++i;
-                    }
-                    cd.selectors.swap(reordered);
-                }
+                //     std::unordered_map<node::Sort, size_t> idx;
+                //     idx.reserve(buckets.size());
+                //     std::vector<decltype(cd.selectors)::value_type> reordered;
+                //     reordered.reserve(cd.selectors.size());
+                //     for (const auto &sd : cd.selectors) {
+                //         auto &i = idx[sd.sort];
+                //         reordered.emplace_back(buckets[sd.sort][i]);
+                //         ++i;
+                //     }
+                //     cd.selectors.swap(reordered);
+                // }
                 size_t idx = 0;
                 for (size_t i = 0, isz = cd.selectors.size(); i < isz; ++i) {
                     if (cd.selectors.at(i).name.empty())
@@ -773,6 +799,13 @@ void Kernel::apply(node::NodeManager &nm) {
                 new_ctors.emplace_back(cd);
             }
             bool need_two = td.ctors.size() >= 2;
+            bool only_zero = true;
+            for (const auto &cd : td.ctors) {
+                if (!cd.selectors.empty()) {
+                    only_zero = false;
+                    break;
+                }
+            }
             td.ctors.swap(new_ctors);
             std::sort(td.ctors.begin(), td.ctors.end(), [](const auto &a, const auto &b) {
                 if (a.name != b.name)
@@ -794,7 +827,14 @@ void Kernel::apply(node::NodeManager &nm) {
             }
             while (td.ctors.empty() || (td.ctors.size() < 2 && need_two)) {
                 td.ctors.emplace_back();
-                td.ctors.back().name = "CON" + std::to_string(con_idx++);
+                if (only_zero)
+                    td.ctors.back().name = "CON" + std::to_string(con_idx++);
+                else {
+                    td.ctors.back().name = "CON" + std::to_string(con_idx++);
+                    td.ctors.back().selectors.emplace_back(td.ctors.back().name + "_TVAR0", std::make_shared<parser::Sort>(parser::SORT_KIND::SK_DEC, "UNUSED_SORT"));
+                    td.ctors.back().selectors.back().sort->setName("UNUSED_SORT");
+                    nm.getSortNames().emplace("UNUSED_SORT", td.ctors.back().selectors.back().sort);
+                }
             }
             size_t idx = 0;
             for (auto &cd : td.ctors) {
@@ -844,6 +884,7 @@ void Kernel::apply(node::NodeManager &nm) {
         if (d_nodes.at(i)->isUFName()) {
             continue;
         }
+
         // std::cout << d_nodes.at(i)->toString() << ' ' << d_hash_table.at(i) << std::endl;
         if (d_nodes.at(i)->getKind() == stabilizer::parser::NODE_KIND::NT_UF_APPLY) {
             // std::cout << d_nodes.at(i)->toString() << std::endl;

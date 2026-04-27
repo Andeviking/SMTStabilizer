@@ -715,12 +715,12 @@ std::shared_ptr<DAGNode> Parser::mkConstStr(const std::string &v) {
     std::string processed_v = v;
 
     // if the string is quoted, remove the quotes
-    if (v.length() >= 2 && v[0] == '"' && v[v.length() - 1] == '"') {
-        processed_v = ConversionUtils::unescapeString(v.substr(1, v.length() - 2));
-        processed_v = "\"" + ConversionUtils::escapeString(processed_v) + "\"";
-    }
-    else
-        processed_v = "\"" + ConversionUtils::escapeString(processed_v) + "\"";
+    // if (v.length() >= 2 && v[0] == '"' && v[v.length() - 1] == '"') {
+    //     processed_v = ConversionUtils::unescapeString(v.substr(1, v.length() - 2));
+    //     processed_v = "\"" + ConversionUtils::escapeString(processed_v) + "\"";
+    // }
+    // else
+    //     processed_v = "\"" + ConversionUtils::escapeString(processed_v) + "\"";
 
     return node_manager->createNode(SortManager::STR_SORT, NODE_KIND::NT_CONST, processed_v);
 }
@@ -1052,7 +1052,6 @@ Parser::mkImplies(const std::vector<std::shared_ptr<DAGNode>> &params) {
     }
 
     new_params.emplace_back(params.back());
-
     return mkOper(SortManager::BOOL_SORT, NODE_KIND::NT_IMPLIES, new_params);
 }
 
