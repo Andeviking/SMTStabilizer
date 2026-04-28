@@ -799,10 +799,16 @@ void Kernel::apply(node::NodeManager &nm) {
                 new_ctors.emplace_back(cd);
             }
             bool need_two = td.ctors.size() >= 2;
+            bool has_zero = false;
             bool only_zero = true;
             for (const auto &cd : td.ctors) {
                 if (!cd.selectors.empty()) {
                     only_zero = false;
+                }
+                else {
+                    has_zero = true;
+                }
+                if (has_zero && !only_zero) {
                     break;
                 }
             }
@@ -825,15 +831,19 @@ void Kernel::apply(node::NodeManager &nm) {
                 if (cd.name.empty())
                     cd.name = "CON" + std::to_string(con_idx++);
             }
+
             while (td.ctors.empty() || (td.ctors.size() < 2 && need_two)) {
                 td.ctors.emplace_back();
                 if (only_zero)
                     td.ctors.back().name = "CON" + std::to_string(con_idx++);
-                else {
+                else if (td.ctors.empty() || !has_zero || td.ctors.front().selectors.empty()) {
                     td.ctors.back().name = "CON" + std::to_string(con_idx++);
                     td.ctors.back().selectors.emplace_back(td.ctors.back().name + "_TVAR0", std::make_shared<parser::Sort>(parser::SORT_KIND::SK_DEC, "UNUSED_SORT"));
                     td.ctors.back().selectors.back().sort->setName("UNUSED_SORT");
                     nm.getSortNames().emplace("UNUSED_SORT", td.ctors.back().selectors.back().sort);
+                }
+                else {
+                    td.ctors.back().name = "CON" + std::to_string(con_idx++);
                 }
             }
             size_t idx = 0;
