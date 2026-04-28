@@ -52,3 +52,5 @@ docs/*
 !docs/.gitkeep
 !docs/pages/
 !docs/pages/**
+
+scripts/
