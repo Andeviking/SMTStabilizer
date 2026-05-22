@@ -1863,7 +1863,6 @@ std::shared_ptr<DAGNode> Parser::rewrite(NODE_KIND &t, std::vector<std::shared_p
 }
 
 std::shared_ptr<DAGNode> Parser::rewrite_oper(NODE_KIND &t, std::vector<std::shared_ptr<DAGNode>> &p) {
-    // return nullptr;
     if (!options->getRewrite())
         return nullptr;
     if (getArity(t) > 0 && p.size() != getArity(t)) {

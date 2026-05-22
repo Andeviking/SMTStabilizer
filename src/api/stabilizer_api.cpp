@@ -26,8 +26,18 @@
 #include "kernel/kernel.h"
 #include "node/node_manager.h"
 #include "parser/parser.h"
+#ifdef SMTSTABILIZER_HAVE_BITWUZLA
+#include "solver/bitwuzla/bitwuzla.h"
+#endif
 
 namespace stabilizer::api {
+
+void SMTStabilizerOptions::set_solver(const std::string &solver) {
+    if (solver != "bitwuzla") {
+        throw std::invalid_argument("unsupported solver: " + solver);
+    }
+    d_solver = solver;
+}
 
 SMTStabilizer::SMTStabilizer(SMTStabilizerOptions options) : d_options(std::move(options)) {}
 
@@ -48,8 +58,23 @@ std::string SMTStabilizer::run_pipeline(stabilizer::parser::Parser &parser, cons
     stabilizer::node::NodeManager nm(parser);
     nm.simplify_assertions();
 
-    stabilizer::kernel::Kernel kernel(nm, options.get_context_propagation(), options.get_subgraph_pruning());
+    stabilizer::kernel::Kernel kernel(nm);
     kernel.apply(nm);
+
+    if (options.get_check_sat()) {
+        if (options.get_solver() != "bitwuzla") {
+            throw std::invalid_argument("unsupported solver: " + options.get_solver());
+        }
+#ifdef SMTSTABILIZER_HAVE_BITWUZLA
+        stabilizer::solver::Bitwuzla solver;
+        for (const auto &assertion : nm.assertions()) {
+            solver.add_assertion(assertion);
+        }
+        return solver.check_sat();
+#else
+        throw std::runtime_error("Bitwuzla support is not compiled in");
+#endif
+    }
 
     return nm.to_string();
 }

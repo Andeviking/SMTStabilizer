@@ -71,32 +71,32 @@ void stabilizer_options_set_rewrite(stabilizer_options *options, bool value);
 bool stabilizer_options_get_rewrite(const stabilizer_options *options);
 
 /**
- * @brief Enable or disable kernel context propagation.
+ * @brief Enable or disable satisfiability checking in the public API.
  * @param options Options handle, must not be null.
- * @param value New context propagation flag.
+ * @param value New check-sat flag.
  */
-void stabilizer_options_set_context_propagation(stabilizer_options *options, bool value);
+void stabilizer_options_set_check_sat(stabilizer_options *options, bool value);
 
 /**
- * @brief Query kernel context propagation flag.
+ * @brief Query satisfiability checking flag.
  * @param options Options handle, must not be null.
- * @return Current context propagation flag. Returns false when options is null.
+ * @return Current flag. Returns false when options is null.
  */
-bool stabilizer_options_get_context_propagation(const stabilizer_options *options);
+bool stabilizer_options_get_check_sat(const stabilizer_options *options);
 
 /**
- * @brief Enable or disable kernel subgraph pruning/tie-breaking behavior.
+ * @brief Select the solver backend used for satisfiability checking.
  * @param options Options handle, must not be null.
- * @param value New subgraph pruning flag.
+ * @param solver Solver name. Currently only "bitwuzla" is accepted.
  */
-void stabilizer_options_set_subgraph_pruning(stabilizer_options *options, bool value);
+void stabilizer_options_set_solver(stabilizer_options *options, const char *solver);
 
 /**
- * @brief Query kernel subgraph pruning/tie-breaking behavior.
+ * @brief Query the solver backend name.
  * @param options Options handle, must not be null.
- * @return Current subgraph pruning flag. Returns false when options is null.
+ * @return Solver backend name owned by the options object; returns "" when options is null.
  */
-bool stabilizer_options_get_subgraph_pruning(const stabilizer_options *options);
+const char *stabilizer_options_get_solver(const stabilizer_options *options);
 
 /**
  * @brief Create a stabilizer instance.
@@ -126,32 +126,32 @@ void stabilizer_set_rewrite(stabilizer_handle *handle, bool value);
 bool stabilizer_get_rewrite(const stabilizer_handle *handle);
 
 /**
- * @brief Update context propagation on a live stabilizer.
+ * @brief Update satisfiability checking on a live stabilizer.
  * @param handle Stabilizer handle, must not be null.
- * @param value New context propagation flag.
+ * @param value New check-sat flag.
  */
-void stabilizer_set_context_propagation(stabilizer_handle *handle, bool value);
+void stabilizer_set_check_sat(stabilizer_handle *handle, bool value);
 
 /**
- * @brief Query context propagation on a live stabilizer.
+ * @brief Query satisfiability checking on a live stabilizer.
  * @param handle Stabilizer handle, must not be null.
  * @return Current flag. Returns false when handle is null.
  */
-bool stabilizer_get_context_propagation(const stabilizer_handle *handle);
+bool stabilizer_get_check_sat(const stabilizer_handle *handle);
 
 /**
- * @brief Update subgraph pruning/tie-breaking behavior on a live stabilizer.
+ * @brief Update the solver backend on a live stabilizer.
  * @param handle Stabilizer handle, must not be null.
- * @param value New subgraph pruning flag.
+ * @param solver Solver name. Currently only "bitwuzla" is accepted.
  */
-void stabilizer_set_subgraph_pruning(stabilizer_handle *handle, bool value);
+void stabilizer_set_solver(stabilizer_handle *handle, const char *solver);
 
 /**
- * @brief Query subgraph pruning/tie-breaking behavior on a live stabilizer.
+ * @brief Query the solver backend on a live stabilizer.
  * @param handle Stabilizer handle, must not be null.
- * @return Current flag. Returns false when handle is null.
+ * @return Solver backend name owned by the handle; returns "" when handle is null.
  */
-bool stabilizer_get_subgraph_pruning(const stabilizer_handle *handle);
+const char *stabilizer_get_solver(const stabilizer_handle *handle);
 
 /**
  * @brief Apply stabilization pipeline to an SMT-LIB2 file.
@@ -160,7 +160,9 @@ bool stabilizer_get_subgraph_pruning(const stabilizer_handle *handle);
  * @param output Output pointer for heap-allocated UTF-8 result string.
  *
  * On success, `*output` receives memory that must be released with
- * stabilizer_free_string(). The handle remains valid after the call.
+ * stabilizer_free_string(). The handle remains valid after the call. When
+ * check-sat is enabled, the output string is the solver status instead of
+ * stabilized SMT2 text.
  *
  * @return STABILIZER_STATUS_OK on success;
  * STABILIZER_STATUS_INVALID_ARGUMENT for null/invalid inputs;
@@ -175,7 +177,9 @@ stabilizer_status stabilizer_apply_file(stabilizer_handle *handle, const char *f
  * @param output Output pointer for heap-allocated UTF-8 result string.
  *
  * On success, `*output` receives memory that must be released with
- * stabilizer_free_string(). The handle remains valid after the call.
+ * stabilizer_free_string(). The handle remains valid after the call. When
+ * check-sat is enabled, the output string is the solver status instead of
+ * stabilized SMT2 text.
  *
  * @return STABILIZER_STATUS_OK on success;
  * STABILIZER_STATUS_INVALID_ARGUMENT for null/invalid inputs;

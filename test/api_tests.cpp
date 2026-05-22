@@ -57,16 +57,30 @@ std::filesystem::path test_root() {
 void test_option_roundtrip() {
     SMTStabilizerOptions options;
     expect(options.get_rewrite(), "rewrite should default to true");
-    expect(options.get_context_propagation(), "context propagation should default to true");
-    expect(options.get_subgraph_pruning(), "subgraph pruning should default to true");
+    expect(!options.get_check_sat(), "check-sat should default to false");
+    expect(options.get_solver() == std::string("bitwuzla"), "solver should default to bitwuzla");
 
     options.set_rewrite(false);
-    options.set_context_propagation(false);
-    options.set_subgraph_pruning(false);
+    options.set_check_sat(true);
+    options.set_solver("bitwuzla");
 
     expect(!options.get_rewrite(), "rewrite getter/setter mismatch");
-    expect(!options.get_context_propagation(), "context propagation getter/setter mismatch");
-    expect(!options.get_subgraph_pruning(), "subgraph pruning getter/setter mismatch");
+    expect(options.get_check_sat(), "check-sat getter/setter mismatch");
+    expect(options.get_solver() == std::string("bitwuzla"), "solver getter/setter mismatch");
+}
+
+void test_basic_pipeline_without_check_sat() {
+    const auto input_path = test_root() / "inputs" / "basic_input.smt2";
+    const auto input = read_file(input_path);
+
+    SMTStabilizer stabilizer;
+    const std::string file_output = stabilizer.apply_file(input_path.string());
+    const std::string text_output = stabilizer.apply_text(input);
+
+    expect(!file_output.empty(), "basic file output should not be empty");
+    expect(file_output == text_output, "basic apply_file and apply_text should match");
+    expect(file_output.find("(set-logic") != std::string::npos, "basic output should contain set-logic");
+    expect(file_output.find("(assert") != std::string::npos, "basic output should contain assertions");
 }
 
 void test_apply_file_and_text_match() {
@@ -107,11 +121,9 @@ void test_flag_matrix_smoke() {
     const auto input_path = test_root() / "inputs" / "symmetric_input.smt2";
     const auto input = read_file(input_path);
 
-    for (int mask = 0; mask < 8; ++mask) {
+    for (int mask = 0; mask < 2; ++mask) {
         SMTStabilizerOptions options;
         options.set_rewrite((mask & 1) != 0);
-        options.set_context_propagation((mask & 2) != 0);
-        options.set_subgraph_pruning((mask & 4) != 0);
 
         SMTStabilizer stabilizer(options);
         const std::string output = stabilizer.apply_text(input);
@@ -147,19 +159,19 @@ void test_c_api() {
     auto *options = stabilizer_options_create();
     expect(options != nullptr, "stabilizer_options_create returned null");
     stabilizer_options_set_rewrite(options, true);
-    stabilizer_options_set_context_propagation(options, false);
-    stabilizer_options_set_subgraph_pruning(options, true);
+    stabilizer_options_set_check_sat(options, false);
+    stabilizer_options_set_solver(options, "bitwuzla");
 
     expect(stabilizer_options_get_rewrite(options), "C option rewrite mismatch");
-    expect(!stabilizer_options_get_context_propagation(options), "C option context propagation mismatch");
-    expect(stabilizer_options_get_subgraph_pruning(options), "C option subgraph pruning mismatch");
+    expect(!stabilizer_options_get_check_sat(options), "C option check-sat mismatch");
+    expect(std::string(stabilizer_options_get_solver(options)) == "bitwuzla", "C option solver mismatch");
 
     auto *handle = stabilizer_create(options);
     expect(handle != nullptr, "stabilizer_create returned null");
 
     expect(stabilizer_get_rewrite(handle), "C handle rewrite mismatch");
-    expect(!stabilizer_get_context_propagation(handle), "C handle context propagation mismatch");
-    expect(stabilizer_get_subgraph_pruning(handle), "C handle subgraph pruning mismatch");
+    expect(!stabilizer_get_check_sat(handle), "C handle check-sat mismatch");
+    expect(std::string(stabilizer_get_solver(handle)) == "bitwuzla", "C handle solver mismatch");
 
     const auto input_path = test_root() / "inputs" / "rewrite_input.smt2";
     char *output = nullptr;
@@ -179,16 +191,33 @@ void test_c_api() {
     stabilizer_options_destroy(options);
 }
 
+void test_check_sat_smoke() {
+#ifdef SMTSTABILIZER_HAVE_BITWUZLA
+    const auto input_path = test_root() / "inputs" / "basic_input.smt2";
+    const auto input = read_file(input_path);
+
+    SMTStabilizerOptions options;
+    options.set_check_sat(true);
+    options.set_solver("bitwuzla");
+
+    SMTStabilizer stabilizer(options);
+    const std::string result = stabilizer.apply_text(input);
+    expect(result == "sat" || result == "unsat" || result == "unknown", "check-sat should return a solver status");
+#endif
+}
+
 }  // namespace
 
 int main() {
     try {
         test_option_roundtrip();
+        test_basic_pipeline_without_check_sat();
         test_apply_file_and_text_match();
         test_rewrite_toggle_smoke();
         test_flag_matrix_smoke();
         test_cpp_error_paths();
         test_c_api();
+        test_check_sat_smoke();
     }
     catch (const std::exception &e) {
         std::cerr << "API test failure: " << e.what() << std::endl;

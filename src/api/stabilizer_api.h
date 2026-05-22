@@ -31,12 +31,9 @@ namespace stabilizer::api {
 /**
  * @brief Public options for the SMTStabilizer API.
  *
- * This type is intentionally independent from parser::GlobalOptions so that
- * external users can control only the stable API surface.
- *
- * The default configuration keeps the current behavior of the command-line
- * tool: rewrite is enabled, context propagation is enabled, and subgraph
- * pruning is enabled.
+ * This type mirrors the runtime options exposed by the command-line layer.
+ * Its defaults match the CLI behavior: rewrite is enabled, check-sat is off,
+ * and the solver mode defaults to bitwuzla.
  */
 class SMTStabilizerOptions {
   public:
@@ -47,20 +44,20 @@ class SMTStabilizerOptions {
     /** Return whether parser-side rewrite normalization is enabled. */
     bool get_rewrite() const noexcept { return d_rewrite; }
 
-    /** Enable or disable context propagation in the kernel stage. */
-    void set_context_propagation(bool value) noexcept { d_context_propagation = value; }
-    /** Return whether context propagation is enabled in the kernel stage. */
-    bool get_context_propagation() const noexcept { return d_context_propagation; }
+    /** Enable or disable satisfiability checking after stabilization. */
+    void set_check_sat(bool check_sat) noexcept { d_check_sat = check_sat; }
+    /** Return whether satisfiability checking is enabled. */
+    bool get_check_sat() const noexcept { return d_check_sat; }
 
-    /** Enable or disable subgraph pruning in the kernel stage. */
-    void set_subgraph_pruning(bool value) noexcept { d_subgraph_pruning = value; }
-    /** Return whether subgraph pruning is enabled in the kernel stage. */
-    bool get_subgraph_pruning() const noexcept { return d_subgraph_pruning; }
+    /** Select the solver backend used when satisfiability checking is enabled. */
+    void set_solver(const std::string &solver);
+    /** Return the configured solver backend. */
+    const std::string &get_solver() const noexcept { return d_solver; }
 
   private:
     bool d_rewrite = true;
-    bool d_context_propagation = true;
-    bool d_subgraph_pruning = true;
+    bool d_check_sat = false;
+    std::string d_solver = "bitwuzla";
 };
 
 /**
@@ -71,10 +68,13 @@ class SMTStabilizerOptions {
  *
  * API-to-kernel boundary:
  * - API methods validate input and instantiate parser state.
- * - run_pipeline creates node::NodeManager, simplifies assertions, and then
- *   transfers control to kernel::Kernel::apply.
- * - Kernel remains an internal implementation detail; only API options and
- *   stable return types are exposed to integrators.
+ * - run_pipeline creates node::NodeManager, disables parser-side keep-let and
+ *   function expansion, applies the rewrite toggle, simplifies assertions, and
+ *   then transfers control to kernel::Kernel::apply.
+ * - If check-sat is enabled, the stabilized assertions are forwarded to the
+ *   selected solver backend and the solver status string is returned.
+ * - Kernel remains an internal implementation detail; the API exposes the
+ *   runtime options used by the CLI and stable return types.
  *
  * Instances are cheap to copy and can be configured independently.
  */
@@ -87,21 +87,35 @@ class SMTStabilizer {
     /** Replace the current API options. */
     void set_options(const SMTStabilizerOptions &options) noexcept;
 
+    /** Return whether satisfiability checking is enabled. */
+    bool get_check_sat() const noexcept { return d_options.get_check_sat(); }
+    /** Enable or disable satisfiability checking. */
+    void set_check_sat(bool check_sat) noexcept { d_options.set_check_sat(check_sat); }
+
+    /** Return the configured solver backend. */
+    const std::string &get_solver() const noexcept { return d_options.get_solver(); }
+    /** Select the solver backend used when satisfiability checking is enabled. */
+    void set_solver(const std::string &solver) { d_options.set_solver(solver); }
+
     /**
      * @brief Apply the full pipeline to an SMT-LIB2 file.
      * @param file_path Path to an SMT-LIB2 input file.
-     * @return Stabilized SMT2 text.
+     * @return Stabilized SMT2 text, or a solver status string when
+     * check-sat is enabled.
      * @throws std::invalid_argument if the path is empty.
-     * @throws std::runtime_error if parsing or normalization fails.
+     * @throws parser::Parser or kernel-related exceptions if parsing or
+     * normalization fails.
      */
     std::string apply_file(const std::string &file_path) const;
 
     /**
      * @brief Apply the full pipeline to an SMT-LIB2 script provided as text.
      * @param smt2_text Full SMT-LIB2 input text.
-     * @return Stabilized SMT2 text.
+     * @return Stabilized SMT2 text, or a solver status string when
+     * check-sat is enabled.
      * @throws std::invalid_argument if the text is empty.
-     * @throws std::runtime_error if parsing or normalization fails.
+     * @throws parser::Parser or kernel-related exceptions if parsing or
+     * normalization fails.
      */
     std::string apply_text(const std::string &smt2_text) const;
 

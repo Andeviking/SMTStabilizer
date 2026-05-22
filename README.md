@@ -26,7 +26,7 @@ text.
 - CLI tool for normalizing SMT-LIB2 files.
 - Public C++ API for embedding the normalization pipeline in other projects.
 - Public C API for use from C or foreign-language bindings.
-- Configurable rewrite, context propagation, and subgraph pruning flags.
+- Configurable rewrite flag.
 - Doxygen documentation generated from the public API headers.
 - CTest-based API tests.
 
@@ -52,6 +52,21 @@ Additional dependency note:
 
 - Linux/macOS: `setup.py` downloads and builds GMP/MPFR automatically.
 - Windows: install GMP/MPFR via vcpkg before configuring CMake.
+
+Optional Bitwuzla integration:
+
+- To download/build Bitwuzla into the bundled `submodules` layout, run:
+
+```bash
+python3 setup.py --bitwuzla
+```
+
+When Bitwuzla headers and libraries are present under the repository
+`submodules` layout, CMake will automatically detect them and define the
+`SMTSTABILIZER_HAVE_BITWUZLA` macro. Do not attempt to enable Bitwuzla via a
+CMake flag — the project only exposes Bitwuzla support when the staged
+headers/libs exist (this avoids mismatches between developer expectation and
+the actual staged dependency version).
 
 ### Linux/macOS
 
@@ -96,6 +111,11 @@ Use `stabilizer::api::SMTStabilizerOptions` to configure the pipeline, then call
 `stabilizer::api::SMTStabilizer::apply_file()` or
 `stabilizer::api::SMTStabilizer::apply_text()`.
 
+The public C++ facade exposes the CLI runtime options used by the codebase:
+rewrite, check-sat, and the solver backend. Parser-side keep-let is disabled,
+function expansion is disabled, and the kernel stages always run as part of
+the stabilization pipeline.
+
 Minimal example:
 
 ```cpp
@@ -104,8 +124,8 @@ Minimal example:
 int main() {
 	stabilizer::api::SMTStabilizerOptions options;
 	options.set_rewrite(true);
-	options.set_context_propagation(true);
-	options.set_subgraph_pruning(true);
+	options.set_check_sat(false);
+	options.set_solver("bitwuzla");
 
 	stabilizer::api::SMTStabilizer stabilizer(options);
 	std::string normalized = stabilizer.apply_file("input.smt2");
@@ -118,6 +138,12 @@ int main() {
 The C API uses opaque handles and returns heap-allocated result strings that
 must be released with `stabilizer_free_string()`.
 
+The C facade mirrors the C++ facade and exposes rewrite, check-sat, and solver
+selection.
+
+For error handling, check the returned `stabilizer_status` and query
+`stabilizer_last_error()` when a call does not succeed.
+
 Minimal example:
 
 ```c
@@ -126,8 +152,8 @@ Minimal example:
 int main(void) {
 	stabilizer_options *options = stabilizer_options_create();
 	stabilizer_options_set_rewrite(options, true);
-	stabilizer_options_set_context_propagation(options, true);
-	stabilizer_options_set_subgraph_pruning(options, true);
+	stabilizer_options_set_check_sat(options, false);
+	stabilizer_options_set_solver(options, "bitwuzla");
 
 	stabilizer_handle *handle = stabilizer_create(options);
 	char *output = NULL;

@@ -43,3 +43,9 @@ jobs:
 
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
+
+      - name: Build Bitwuzla support
+        run: python3 setup.py --bitwuzla
+
+      - name: Run tests with Bitwuzla
+        run: ctest --test-dir build --output-on-failure

@@ -43,11 +43,8 @@ class Kernel {
     /**
      * @brief Build kernel state from the current node manager assertions.
      * @param nm Node manager that provides the DAG roots and symbol tables.
-     * @param context_propagation Enable fixed-point context propagation.
-     * @param symmetry_breaking_perturbation Enable iterative subgraph-based
-     * tie breaking for colliding symbols.
      */
-    Kernel(node::NodeManager &nm, const bool &context_propagation = true, const bool &symmetry_breaking_perturbation = true);
+    Kernel(node::NodeManager &nm);
 
     /**
      * @brief Run the full stabilization pass and mutate node manager state.
@@ -80,9 +77,6 @@ class Kernel {
     // std::unordered_map<size_t, size_t> d_spe_hash_count;
 
     size_t d_symbol_num;
-
-    bool d_context_propagation = true;
-    bool d_symmetry_breaking_perturbation = true;
 
     /**
      * @brief Check whether node kind at index @p i is treated as commutative.

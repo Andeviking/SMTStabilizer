@@ -293,11 +293,12 @@ def extract_archive(archive_path: Union[str, os.PathLike, Path], dest_dir: Union
 
 
 # --------------- Copy directory ----------------
-def copy_folder(src: Union[str, os.PathLike, Path], dst: Union[str, os.PathLike, Path], patterns=None, overwrite: bool = False):
+def copy_folder(src: Union[str, os.PathLike, Path], dst: Union[str, os.PathLike, Path], patterns=None, overwrite: bool = False, flatten: bool = False):
     """
     Copy all files in src that match the given patterns into dst, preserving their relative directory structure.
     - patterns: a single glob pattern string or a list of strings; defaults to "**/*" (matches all files).
     - overwrite: if True, existing target files with the same name will be overwritten; otherwise existing files are skipped.
+    - flatten: if True, copy matched files directly into dst using only their basename.
     Behavior notes:
     - Does not remove existing directories or files under dst; only creates missing parent directories as needed.
     - Only copies matched regular files (skips directories, unreadable items, or entries that would traverse outside the source path).
@@ -342,7 +343,7 @@ def copy_folder(src: Union[str, os.PathLike, Path], dst: Union[str, os.PathLike,
 
     for i, entry in enumerate(matched, start=1):
         try:
-            rel = entry.relative_to(src)
+            rel = entry.name if flatten else entry.relative_to(src)
         except Exception:
             warn(f"Skipping unreadable/unrelated entry: {entry}")
             printer.progress(i, total_files)
@@ -533,6 +534,80 @@ def build_gmp():
     info("GMP build and installation complete.")
 
 
+def build_bitwuzla(version: str = "0.9.1"):
+    """
+    Download, extract, configure, build and install Bitwuzla into the submodules prefix.
+    Uses global paths: cache_dir, submodules_dir, include_dir, lib_dir.
+    """
+    global cache_dir, submodules_dir, include_dir, lib_dir
+
+    url = f"https://github.com/bitwuzla/bitwuzla/archive/refs/tags/{version}.tar.gz"
+    archive = download_file(url, cache_dir)
+    extract_archive(archive, cache_dir)
+
+    source_dir = Path(cache_dir) / f"bitwuzla-{version}"
+    if not source_dir.exists():
+        # Some release archives may unpack into a directory named 'bitwuzla'
+        alt = Path(cache_dir) / "bitwuzla"
+        if alt.exists():
+            source_dir = alt
+        else:
+            raise FileNotFoundError(f"Bitwuzla source not found after extraction: {source_dir}")
+
+    prefix = source_dir / "bitwuzla-install"
+    build_dir = source_dir / "build"
+    jobs = max(1, (os.cpu_count() or 1))
+
+    info(f"Building Bitwuzla from {source_dir} -> prefix={prefix} with {jobs} jobs")
+    try:
+        env = os.environ.copy()
+        opt_flags = "-O3 -march=native -mtune=native -fno-strict-aliasing -fwrapv -pipe"
+        env.update({
+            "CFLAGS": opt_flags,
+            "CXXFLAGS": opt_flags + " -std=gnu++20",
+        })
+
+        # Configure using Bitwuzla's configure.py which wraps Meson
+        cfg_cmd = [sys.executable, "./configure.py", "release", "--build-dir", str(build_dir), "--prefix", str(prefix), "--static", "--no-testing", "--no-unit-testing", "--no-python", "--no-docs"]
+        info(f"Configuring Bitwuzla: {' '.join(cfg_cmd)}")
+        subprocess.run(cfg_cmd, cwd=str(source_dir), check=True, env=env)
+
+        # Build using ninja (Meson backend produces ninja files), then install
+        # into the staged prefix so we can copy from bitwuzla-install/include
+        # and bitwuzla-install/lib.
+        info(f"Building Bitwuzla with ninja in {build_dir}")
+        subprocess.run(["ninja", "-C", str(build_dir)], cwd=str(source_dir), check=True, env=env)
+
+        info(f"Installing Bitwuzla into {prefix}")
+        subprocess.run(["ninja", "-C", str(build_dir), "install"], cwd=str(source_dir), check=True, env=env)
+
+    except subprocess.CalledProcessError as e:
+        error(f"Bitwuzla build step failed: {e}")
+        raise
+
+    # Copy headers from bitwuzla-install/include with structure preserved.
+    inc_src = prefix / "include"
+    if inc_src.exists():
+        info(f"Copying Bitwuzla headers from {inc_src} -> {include_dir}")
+        try:
+            copy_folder(str(inc_src), str(include_dir), patterns="**/*.h*", overwrite=True)
+        except Exception as e:
+            warn(f"Failed to copy Bitwuzla headers: {e}")
+
+    # Copy static libs from bitwuzla-install/lib directly into lib_dir.
+    lib_src = prefix / "lib"
+    if lib_src.exists():
+        info(f"Copying Bitwuzla libs from {lib_src} -> {lib_dir}")
+        try:
+            copy_folder(str(lib_src), str(lib_dir), patterns=["**/*.a"], overwrite=True, flatten=True)
+        except Exception as e:
+            warn(f"Failed to copy Bitwuzla libraries: {e}")
+    else:
+        warn(f"Expected Bitwuzla libraries under {lib_src} not found; check build output")
+
+    info("Bitwuzla build and staging complete.")
+
+
 
 if __name__ == "__main__":
     # Determine a robust absolute base directory (script location)
@@ -556,6 +631,15 @@ if __name__ == "__main__":
             error(f"Failed to create directory {d}: {e}")
             sys.exit(1)
 
+    # Parse optional flags for this setup script
+    build_bitwuzla_flag = False
+    if "--bitwuzla" in sys.argv:
+        build_bitwuzla_flag = True
+        try:
+            sys.argv.remove("--bitwuzla")
+        except ValueError:
+            pass
+
     # Build dependency archives with autotools on non-Windows hosts.
     # Windows users should provide dependencies through vcpkg/system packages.
     if not is_windows():
@@ -570,6 +654,13 @@ if __name__ == "__main__":
         except Exception as e:
             error(f"build_mpfr failed: {e}")
             sys.exit(1)
+        # Optionally build bitwuzla when requested
+        if build_bitwuzla_flag:
+            try:
+                build_bitwuzla()
+            except Exception as e:
+                error(f"build_bitwuzla failed: {e}")
+                sys.exit(1)
     else:
         warn("Windows detected: skipping GMP/MPFR autotools build in setup.py.")
         warn("Install dependencies with vcpkg and set VCPKG_ROOT before running setup.py.")

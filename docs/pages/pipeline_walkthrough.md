@@ -4,8 +4,9 @@ This walkthrough tracks one stabilization call from API entry to final serialize
 
 ## Step 1: API Input Handling
 
-- API validates file/text input.
-- Parser is created and configured.
+- API rejects empty file/text input.
+- Parser is created and configured with keep-let disabled, function expansion disabled, and the rewrite toggle forwarded.
+- If check-sat is enabled, the stabilized assertions are forwarded to the selected solver backend and a solver status string is returned.
 
 ## Step 2: Node Manager Preparation
 
@@ -21,9 +22,9 @@ This walkthrough tracks one stabilization call from API entry to final serialize
 
 ## Step 4: Canonical Naming and Output
 
-- Symbols, UFs, and function declarations are renamed deterministically.
-- Assertions and declarations are sorted by stabilized ordering keys.
-- Final SMT2 text is emitted through node manager serialization.
+- Symbols, UFs, datatype constructors/selectors, and function declarations are renamed deterministically.
+- Assertions, function declarations, and datatype blocks are sorted by stabilized ordering keys.
+- Final SMT2 text is emitted through node manager serialization unless check-sat mode is enabled, in which case the solver status string is returned.
 
 ## Source Anchors
 

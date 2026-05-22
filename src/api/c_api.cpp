@@ -109,24 +109,29 @@ bool stabilizer_options_get_rewrite(const stabilizer_options *options) {
     return options != nullptr ? options->value.get_rewrite() : false;
 }
 
-void stabilizer_options_set_context_propagation(stabilizer_options *options, bool value) {
+void stabilizer_options_set_check_sat(stabilizer_options *options, bool value) {
     if (options != nullptr) {
-        options->value.set_context_propagation(value);
+        options->value.set_check_sat(value);
     }
 }
 
-bool stabilizer_options_get_context_propagation(const stabilizer_options *options) {
-    return options != nullptr ? options->value.get_context_propagation() : false;
+bool stabilizer_options_get_check_sat(const stabilizer_options *options) {
+    return options != nullptr ? options->value.get_check_sat() : false;
 }
 
-void stabilizer_options_set_subgraph_pruning(stabilizer_options *options, bool value) {
-    if (options != nullptr) {
-        options->value.set_subgraph_pruning(value);
+void stabilizer_options_set_solver(stabilizer_options *options, const char *solver) {
+    if (options == nullptr || solver == nullptr) {
+        return;
+    }
+    try {
+        options->value.set_solver(solver);
+    }
+    catch (const std::exception &) {
     }
 }
 
-bool stabilizer_options_get_subgraph_pruning(const stabilizer_options *options) {
-    return options != nullptr ? options->value.get_subgraph_pruning() : false;
+const char *stabilizer_options_get_solver(const stabilizer_options *options) {
+    return options != nullptr ? options->value.get_solver().c_str() : "";
 }
 
 stabilizer_handle *stabilizer_create(const stabilizer_options *options) {
@@ -150,30 +155,34 @@ bool stabilizer_get_rewrite(const stabilizer_handle *handle) {
     return handle != nullptr ? handle->stabilizer.options().get_rewrite() : false;
 }
 
-void stabilizer_set_context_propagation(stabilizer_handle *handle, bool value) {
+void stabilizer_set_check_sat(stabilizer_handle *handle, bool value) {
     if (handle == nullptr) {
         return;
     }
     auto options = current_options(handle);
-    options.set_context_propagation(value);
+    options.set_check_sat(value);
     apply_options(handle, options);
 }
 
-bool stabilizer_get_context_propagation(const stabilizer_handle *handle) {
-    return handle != nullptr ? handle->stabilizer.options().get_context_propagation() : false;
+bool stabilizer_get_check_sat(const stabilizer_handle *handle) {
+    return handle != nullptr ? handle->stabilizer.options().get_check_sat() : false;
 }
 
-void stabilizer_set_subgraph_pruning(stabilizer_handle *handle, bool value) {
-    if (handle == nullptr) {
+void stabilizer_set_solver(stabilizer_handle *handle, const char *solver) {
+    if (handle == nullptr || solver == nullptr) {
         return;
     }
     auto options = current_options(handle);
-    options.set_subgraph_pruning(value);
-    apply_options(handle, options);
+    try {
+        options.set_solver(solver);
+        apply_options(handle, options);
+    }
+    catch (const std::exception &) {
+    }
 }
 
-bool stabilizer_get_subgraph_pruning(const stabilizer_handle *handle) {
-    return handle != nullptr ? handle->stabilizer.options().get_subgraph_pruning() : false;
+const char *stabilizer_get_solver(const stabilizer_handle *handle) {
+    return handle != nullptr ? handle->stabilizer.options().get_solver().c_str() : "";
 }
 
 stabilizer_status stabilizer_apply_file(stabilizer_handle *handle, const char *file_path, char **output) {

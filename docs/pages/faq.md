@@ -2,7 +2,7 @@
 
 ## Why does the API expose only high-level options?
 
-The API is intended to remain stable for integrations. Internal kernel strategy can evolve independently.
+The API is intended to remain stable for integrations. The current public C++ and C facades expose the rewrite toggle only, while parser keep-let and function expansion are fixed by the stabilization pipeline.
 
 ## Why are private kernel methods documented?
 

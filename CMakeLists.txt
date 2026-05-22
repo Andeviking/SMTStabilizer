@@ -32,6 +32,9 @@ option(SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS
     "Link against bundled static GMP/MPFR archives under submodules/lib"
     ${SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS_DEFAULT})
 
+# Bitwuzla enablement is automatic when staged headers/libs exist; no CMake
+# option is provided to force-enable it.
+
 set(SMTSTABILIZER_FORCE_FULLY_STATIC_DEFAULT OFF)
 if (UNIX AND NOT APPLE)
     set(SMTSTABILIZER_FORCE_FULLY_STATIC_DEFAULT ON)
@@ -119,6 +122,33 @@ if (NOT BUILD_DOCS_ONLY)
                     "-DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF to use system libraries.")
             endif()
         endforeach()
+        # Check for bundled Bitwuzla header and required static libraries.
+        set(BITWUZLA_HEADER_BUNDLED ${CMAKE_SOURCE_DIR}/submodules/include/bitwuzla/)
+        set(BITWUZLA_LIB_FILES
+            ${CMAKE_SOURCE_DIR}/submodules/lib/libbitwuzla.a
+            ${CMAKE_SOURCE_DIR}/submodules/lib/libbitwuzlabv.a
+            ${CMAKE_SOURCE_DIR}/submodules/lib/libbitwuzlals.a
+            ${CMAKE_SOURCE_DIR}/submodules/lib/libbitwuzlabb.a)
+
+        set(BITWUZLA_MISSING)
+        if (NOT EXISTS ${BITWUZLA_HEADER_BUNDLED})
+            list(APPEND BITWUZLA_MISSING ${BITWUZLA_HEADER_BUNDLED})
+        endif()
+        foreach(LF IN LISTS BITWUZLA_LIB_FILES)
+            if (NOT EXISTS ${LF})
+                list(APPEND BITWUZLA_MISSING ${LF})
+            endif()
+        endforeach()
+
+        if (BITWUZLA_MISSING)
+            message(STATUS "Bundled Bitwuzla: missing files: ${BITWUZLA_MISSING}")
+            set(BITWUZLA_FOUND OFF)
+        else()
+            # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/submodules/include)
+            # list(APPEND ALL_LIBRARIES ${BITWUZLA_LIB_FILES})
+            set(BITWUZLA_FOUND ON)
+            message(STATUS "Bundled Bitwuzla: all required files present")
+        endif()
     else()
         find_path(GMP_INCLUDE_DIR gmp.h)
         find_path(MPFR_INCLUDE_DIR mpfr.h)
@@ -137,8 +167,19 @@ if (NOT BUILD_DOCS_ONLY)
         set(ALL_LIBRARIES ${MPFR_LIBRARY} ${GMPXX_LIBRARY} ${GMP_LIBRARY})
     endif()
 
+    # Bitwuzla detection is only supported via bundled staged headers/libs
+    # placed by `setup.py` (i.e. submodules/include and submodules/lib).
+    # Do not attempt to enable Bitwuzla via a CMake flag alone.
+    if (BITWUZLA_FOUND)
+        add_compile_definitions(SMTSTABILIZER_HAVE_BITWUZLA)
+        message(STATUS "Bitwuzla support: enabled (bundled)")
+    else()
+        message(STATUS "Bitwuzla support: disabled")
+    endif()
+
 
     # add_subdirectory(src/kernel)
+    add_subdirectory(src/solver)
     add_subdirectory(src/main)
     add_subdirectory(src/api)
     add_subdirectory(src/util)
@@ -146,5 +187,6 @@ if (NOT BUILD_DOCS_ONLY)
     add_subdirectory(src/parser)
     add_subdirectory(src/kernel)
     add_subdirectory(src/node)
+    add_subdirectory(src/option)
     add_subdirectory(test)
 endif()

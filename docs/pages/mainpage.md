@@ -20,6 +20,7 @@ Parser internals are documented at interface level. Utility helpers are document
 - \subpage page_pipeline_walkthrough "Pipeline Walkthrough"
 - \subpage page_glossary "Glossary"
 - \subpage page_faq "FAQ"
+- \subpage page_bitwuzla_integration "Bitwuzla Integration"
 
 ## Quick Start
 
