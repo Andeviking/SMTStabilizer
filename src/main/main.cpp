@@ -22,6 +22,7 @@
 #include <ios>
 #include <iostream>
 
+#include "bitwuzla/cpp/bitwuzla.h"
 #include "kernel/kernel.h"
 #include "node/node_manager.h"
 #include "option/option.h"
@@ -56,7 +57,14 @@ int main(int argc, char *argv[]) {
     if (options.get<bool>(stabilizer::option::Option::CHECK_SAT)) {
         if (options.get<std::string>(stabilizer::option::Option::SOLVER) == "bitwuzla") {
 #ifdef SMTSTABILIZER_HAVE_BITWUZLA
-            stabilizer::solver::Bitwuzla solver;
+            bitwuzla::Options bzla_options;
+            bzla_options.set(bitwuzla::Option::ABSTRACTION, options.get<bool>(stabilizer::option::Option::BZLA_ABSTRACTION));
+            bzla_options.set(bitwuzla::Option::PP_VARIABLE_SUBST, options.get<bool>(stabilizer::option::Option::BZLA_SUBST));
+            bzla_options.set(bitwuzla::Option::PP_NORMALIZE, options.get<bool>(stabilizer::option::Option::BZLA_NORMALIZE));
+            bzla_options.set(bitwuzla::Option::REWRITE_LEVEL, options.get<uint64_t>(stabilizer::option::Option::BZLA_REWRITE_LEVEL));
+            bzla_options.set(bitwuzla::Option::SAT_SOLVER, options.get<std::string>(stabilizer::option::Option::BZLA_SAT_SOLVER));
+
+            stabilizer::solver::Bitwuzla solver(bzla_options);
 
             for (const auto &assertion : nm.assertions()) {
                 solver.add_assertion(assertion);

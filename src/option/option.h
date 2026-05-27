@@ -16,6 +16,11 @@ enum class Option {
     CHECK_SAT,
     REWRITE,
     SOLVER,
+    BZLA_ABSTRACTION,
+    BZLA_SUBST,
+    BZLA_NORMALIZE,
+    BZLA_REWRITE_LEVEL,
+    BZLA_SAT_SOLVER,
     NUM_OPTIONS
 };
 

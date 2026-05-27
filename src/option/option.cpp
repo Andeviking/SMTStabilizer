@@ -16,6 +16,11 @@ const std::array<OptionInfo, static_cast<size_t>(Option::NUM_OPTIONS)>
             OptionInfo{Option::CHECK_SAT, "", "--check-sat", "Check satisfiability of the formula", BoolInfo{false}},
             OptionInfo{Option::REWRITE, "", "--rewrite", "Apply rewrite rules to the formula", BoolInfo{true}},
             OptionInfo{Option::SOLVER, "", "--solver", "Select the underlying SMT solver (e.g., 'bitwuzla')", ModeInfo{"bitwuzla"}},
+            OptionInfo{Option::BZLA_ABSTRACTION, "", "--bzla-abstraction", "Apply Bitwuzla abstraction", BoolInfo{true}},
+            OptionInfo{Option::BZLA_SUBST, "", "--bzla-subst", "Apply Bitwuzla substitution", BoolInfo{true}},
+            OptionInfo{Option::BZLA_NORMALIZE, "", "--bzla-normalize", "Apply Bitwuzla normalization", BoolInfo{true}},
+            OptionInfo{Option::BZLA_REWRITE_LEVEL, "", "--bzla-rewrite-level", "Set Bitwuzla rewrite level (0-2)", NumericInfo{2, 0, 2}},
+            OptionInfo{Option::BZLA_SAT_SOLVER, "", "--bzla-sat-solver", "Select Bitwuzla SAT solver (e.g., 'cadical')", ModeInfo{"cadical", "kissat"}},
         }};
         std::sort(arr.begin(), arr.end(), [](const OptionInfo &a, const OptionInfo &b) {
             return a.option < b.option;

@@ -568,7 +568,7 @@ def build_bitwuzla(version: str = "0.9.1"):
         })
 
         # Configure using Bitwuzla's configure.py which wraps Meson
-        cfg_cmd = [sys.executable, "./configure.py", "release", "--build-dir", str(build_dir), "--prefix", str(prefix), "--static", "--no-testing", "--no-unit-testing", "--no-python", "--no-docs"]
+        cfg_cmd = [sys.executable, "./configure.py", "release", "--build-dir", str(build_dir), "--prefix", str(prefix), "--static", "--no-testing", "--no-unit-testing", "--no-python", "--no-docs", "--kissat"]
         info(f"Configuring Bitwuzla: {' '.join(cfg_cmd)}")
         subprocess.run(cfg_cmd, cwd=str(source_dir), check=True, env=env)
 

@@ -10,6 +10,8 @@ namespace stabilizer::solver {
 class Bitwuzla : public SmtSolver {
   public:
     Bitwuzla() : d_tm(), d_options(), d_solver(d_tm, d_options) {}
+    Bitwuzla(const bitwuzla::Options &options) : d_tm(), d_options(options), d_solver(d_tm, d_options) {}
+
     ~Bitwuzla() override = default;
 
     void simplify() override;
