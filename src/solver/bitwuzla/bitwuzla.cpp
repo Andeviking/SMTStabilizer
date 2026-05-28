@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <limits>
+#include <stdexcept>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -11,8 +13,69 @@
 #include "parser/sort.h"
 
 namespace stabilizer::solver {
+// bool Bitwuzla::xgboost_predict(const std::string &model_path) const {
+// #ifdef SMTSTABILIZER_HAVE_XGBOOST
+//     std::vector<float> features;
+//     features.reserve(d_features.size());
+//     for (const auto &feature : d_features) {
+//         features.push_back(static_cast<float>(feature));
+//     }
+
+//     DMatrixHandle dmat = nullptr;
+//     BoosterHandle booster = nullptr;
+//     const float missing = std::numeric_limits<float>::quiet_NaN();
+
+//     auto cleanup = [&]() {
+//         if (booster != nullptr) {
+//             XGBoosterFree(booster);
+//             booster = nullptr;
+//         }
+//         if (dmat != nullptr) {
+//             XGDMatrixFree(dmat);
+//             dmat = nullptr;
+//         }
+//     };
+
+//     auto ensure_ok = [&](int code, const std::string &message) {
+//         if (code != 0) {
+//             std::string error = message;
+//             error += ": ";
+//             error += XGBGetLastError();
+//             cleanup();
+//             throw std::runtime_error(error);
+//         }
+//     };
+
+//     ensure_ok(XGDMatrixCreateFromMat(features.data(), 1, static_cast<bst_ulong>(features.size()), missing, &dmat),
+//               "Failed to create XGBoost DMatrix");
+
+//     const DMatrixHandle dmats[] = {dmat};
+//     ensure_ok(XGBoosterCreate(dmats, 1, &booster), "Failed to create XGBoost booster");
+//     ensure_ok(XGBoosterLoadModel(booster, model_path.c_str()), "Failed to load XGBoost model");
+
+//     const char *config = R"({"type":0,"training":false,"iteration_begin":0,"iteration_end":0,"strict_shape":false})";
+//     const bst_ulong *out_shape = nullptr;
+//     bst_ulong out_dim = 0;
+//     const float *out_result = nullptr;
+//     ensure_ok(XGBoosterPredictFromDMatrix(booster, dmat, config, &out_shape, &out_dim, &out_result),
+//               "Failed to run XGBoost prediction");
+
+//     if (out_result == nullptr || out_dim == 0) {
+//         cleanup();
+//         throw std::runtime_error("XGBoost returned an empty prediction result");
+//     }
+
+//     float prediction = out_result[0];
+//     cleanup();
+//     return prediction >= 0.5;
+// #else
+//     (void)model_path;
+//     throw std::runtime_error("XGBoost support is not compiled in");
+// #endif
+// }
+
 void Bitwuzla::simplify() {
-    d_solver.simplify();
+    // d_solver.simplify();
 }
 
 void Bitwuzla::add_assertion(const node::Node &assertion) {
@@ -31,7 +94,9 @@ void Bitwuzla::add_assertion(const node::Node &assertion) {
         }
         visit.pop_back();
     }
-    d_solver.assert_formula(d_cache.at(assertion));
+    d_assertions.emplace_back(d_cache.at(assertion));
+    d_features.at(static_cast<size_t>(d_assertions.back().kind()))++;
+    // d_solver.assert_formula(d_cache.at(assertion));
 }
 
 bitwuzla::Sort Bitwuzla::mk_sort(const node::Sort &sort) {
@@ -54,7 +119,9 @@ bitwuzla::Term Bitwuzla::mk_term(const node::Node &node) {
     std::vector<bitwuzla::Term> args(children.size());
     for (size_t i = 0; i < children.size(); i++) {
         args[i] = d_cache.at(children[i]);
+        d_features.at(static_cast<size_t>(args[i].kind()))++;
     }
+
     auto sort = mk_sort(node->getSort());
     auto name = node->getName();
 
@@ -177,7 +244,20 @@ bitwuzla::Term Bitwuzla::mk_term(const node::Node &node) {
 }
 
 std::string Bitwuzla::check_sat() {
-    auto result = d_solver.check_sat();
+// for (const auto &c : d_features) {
+//     std::cout << c << ',';
+// }
+// std::cout << std::endl;
+// exit(0);
+#ifdef SMTSTABILIZER_HAVE_XGBOOST
+
+#endif
+    bitwuzla::Bitwuzla solver(d_tm, d_options);
+    for (const auto &assertion : d_assertions) {
+        solver.assert_formula(assertion);
+    }
+
+    auto result = solver.check_sat();
     if (result == bitwuzla::Result::SAT) {
         return "sat";
     }

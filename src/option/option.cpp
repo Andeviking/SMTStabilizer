@@ -13,7 +13,7 @@ const std::array<OptionInfo, static_cast<size_t>(Option::NUM_OPTIONS)>
     Options::d_option_info = []() {
         std::array<OptionInfo, static_cast<size_t>(Option::NUM_OPTIONS)> arr{{
             OptionInfo{Option::HELP, "-h", "--help", "Print this help message", BoolInfo{false}},
-            OptionInfo{Option::CHECK_SAT, "", "--check-sat", "Check satisfiability of the formula", BoolInfo{false}},
+            OptionInfo{Option::CHECK_SAT, "", "--check-sat", "Check satisfiability of the formula", BoolInfo{true}},
             OptionInfo{Option::REWRITE, "", "--rewrite", "Apply rewrite rules to the formula", BoolInfo{true}},
             OptionInfo{Option::SOLVER, "", "--solver", "Select the underlying SMT solver (e.g., 'bitwuzla')", ModeInfo{"bitwuzla"}},
             OptionInfo{Option::BZLA_ABSTRACTION, "", "--bzla-abstraction", "Apply Bitwuzla abstraction", BoolInfo{true}},

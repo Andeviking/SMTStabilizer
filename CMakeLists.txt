@@ -107,6 +107,8 @@ endif()
 
 if (NOT BUILD_DOCS_ONLY)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads REQUIRED)
 
     if (SMTSTABILIZER_USE_BUNDLED_STATIC_LIBS)
         include_directories(${CMAKE_CURRENT_SOURCE_DIR}/submodules/include)
@@ -122,6 +124,22 @@ if (NOT BUILD_DOCS_ONLY)
                     "-DSMTSTABILIZER_USE_BUNDLED_STATIC_LIBS=OFF to use system libraries.")
             endif()
         endforeach()
+        execute_process(
+            COMMAND ${CMAKE_CXX_COMPILER} -print-file-name=libgomp.a
+            OUTPUT_VARIABLE GOMP_LIBRARY
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+        if (NOT EXISTS ${GOMP_LIBRARY})
+            message(FATAL_ERROR "Unable to locate libgomp.a via the active C++ compiler: ${GOMP_LIBRARY}")
+        endif()
+        set(GOMP_LIB ${GOMP_LIBRARY} CACHE INTERNAL "libgomp library path")
+        find_library(DL_LIBRARY dl REQUIRED)
+        if (NOT DL_LIBRARY)
+            message(FATAL_ERROR "not find libdl")
+        else()
+            message(STATUS "find libdl: ${DL_LIBRARY}")
+        endif()
+        set(DL_LIB ${DL_LIBRARY} CACHE INTERNAL "libdl library path")
+
         # Check for bundled Bitwuzla header and required static libraries.
         set(BITWUZLA_HEADER_BUNDLED ${CMAKE_SOURCE_DIR}/submodules/include/bitwuzla/)
         set(BITWUZLA_LIB_FILES
@@ -149,6 +167,31 @@ if (NOT BUILD_DOCS_ONLY)
             set(BITWUZLA_FOUND ON)
             message(STATUS "Bundled Bitwuzla: all required files present")
         endif()
+
+        # Check for bundled XGBoost header and required static libraries.
+        set(XGBOOST_HEADER_BUNDLED ${CMAKE_SOURCE_DIR}/submodules/include/xgboost/c_api.h)
+        set(XGBOOST_LIB_FILES
+            ${CMAKE_SOURCE_DIR}/submodules/lib/xgboost/libxgboost.a
+            ${CMAKE_SOURCE_DIR}/submodules/lib/xgboost/libdmlc.a)
+
+        set(XGBOOST_MISSING)
+        if (NOT EXISTS ${XGBOOST_HEADER_BUNDLED})
+            list(APPEND XGBOOST_MISSING ${XGBOOST_HEADER_BUNDLED})
+        endif()
+        foreach(LF IN LISTS XGBOOST_LIB_FILES)
+            if (NOT EXISTS ${LF})
+                list(APPEND XGBOOST_MISSING ${LF})
+            endif()
+        endforeach()
+
+        if (XGBOOST_MISSING)
+            message(STATUS "Bundled XGBoost: missing files: ${XGBOOST_MISSING}")
+            set(XGBOOST_FOUND OFF)
+        else()
+            set(XGBOOST_FOUND ON)
+            list(APPEND ALL_LIBRARIES ${XGBOOST_LIB_FILES})
+            message(STATUS "Bundled XGBoost: all required files present")
+        endif()
     else()
         find_path(GMP_INCLUDE_DIR gmp.h)
         find_path(MPFR_INCLUDE_DIR mpfr.h)
@@ -175,6 +218,15 @@ if (NOT BUILD_DOCS_ONLY)
         message(STATUS "Bitwuzla support: enabled (bundled)")
     else()
         message(STATUS "Bitwuzla support: disabled")
+    endif()
+
+    # XGBoost detection is only supported via bundled staged headers/libs
+    # placed by `setup.py` (submodules/include/xgboost and submodules/lib/xgboost).
+    if (XGBOOST_FOUND)
+        add_compile_definitions(SMTSTABILIZER_HAVE_XGBOOST)
+        message(STATUS "XGBoost support: enabled (bundled)")
+    else()
+        message(STATUS "XGBoost support: disabled")
     endif()
 
 

@@ -30,4 +30,19 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # Add the executable
 add_executable(${PROJECT_NAME} ${SRC})
 
-target_link_libraries(${PROJECT_NAME} solver kernel node parser util option ${BITWUZLA_LIB_FILES} ${ALL_LIBRARIES} )
+# target_link_libraries(${PROJECT_NAME} OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        solver
+        kernel
+        node
+        parser
+        util
+        option
+        ${BITWUZLA_LIB_FILES}
+        ${ALL_LIBRARIES}
+        ${GOMP_LIB}
+        ${DL_LIB}
+        Threads::Threads
+)
+

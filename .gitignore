@@ -45,6 +45,7 @@ submodules/lib/
 submodules/cache/gmp-6.3.0/
 submodules/cache/mpfr-4.2.2/
 submodules/cache/bitwuzla-0.9.1/
+submodules/cache/xgboost/
 build/
 .cache/
 .venv/
@@ -53,6 +54,7 @@ docs/*
 !docs/.gitkeep
 !docs/pages/
 !docs/pages/**
+model/
 
 scripts/
 __pycache__/

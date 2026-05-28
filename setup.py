@@ -608,6 +608,83 @@ def build_bitwuzla(version: str = "0.9.1"):
     info("Bitwuzla build and staging complete.")
 
 
+def build_xgboost():
+    """
+    Download, extract, build and stage XGBoost static libs/headers
+    into submodules/lib/xgboost and submodules/include/xgboost.
+    Uses global paths: cache_dir, submodules_dir, include_dir, lib_dir.
+    """
+    global cache_dir, submodules_dir, include_dir, lib_dir
+
+    version = "3.2.0"
+    url = f"https://github.com/dmlc/xgboost/releases/download/v{version}/xgboost-src-{version}.tar.gz"
+    archive = download_file(url, cache_dir)
+    extract_archive(archive, cache_dir)
+
+    source_dir = Path(cache_dir) / f"xgboost"
+    if not source_dir.exists():
+        # Fallback for potential extraction dir naming differences.
+        candidates = sorted(Path(cache_dir).glob("xgboost-src-*"))
+        source_dir = candidates[-1] if candidates else source_dir
+    if not source_dir.exists():
+        raise FileNotFoundError(f"XGBoost source not found after extraction: {source_dir}")
+
+    build_dir = source_dir / "build"
+    jobs = max(1, (os.cpu_count() or 1))
+
+    info(f"Building XGBoost from {source_dir} with {jobs} jobs")
+    try:
+        env = os.environ.copy()
+        opt_flags = "-O3 -march=native -mtune=native -fno-strict-aliasing -fwrapv -pipe"
+        env.update({
+            "CFLAGS": opt_flags,
+            "CXXFLAGS": opt_flags + " -std=gnu++20",
+        })
+
+        build_dir.mkdir(parents=True, exist_ok=True)
+
+        cfg_cmd = ["cmake", "..", "-DUSE_OPENMP=ON", "-DBUILD_STATIC_LIB=ON", "-DCMAKE_BUILD_TYPE=Release"]
+        info(f"Configuring XGBoost: {' '.join(cfg_cmd)}")
+        subprocess.run(cfg_cmd, cwd=str(build_dir), check=True, env=env)
+
+        info(f"Building XGBoost with {jobs} jobs")
+        subprocess.run(["make", f"-j{jobs}"], cwd=str(build_dir), check=True, env=env)
+
+    except subprocess.CalledProcessError as e:
+        error(f"XGBoost build step failed: {e}")
+        raise
+
+    xgboost_lib_dir = lib_dir / "xgboost"
+    xgboost_inc_dir = include_dir / "xgboost"
+    xgboost_lib_dir.mkdir(parents=True, exist_ok=True)
+    xgboost_inc_dir.mkdir(parents=True, exist_ok=True)
+
+    src_libxgboost = source_dir / "lib" / "libxgboost.a"
+    src_libdmlc = build_dir / "dmlc-core" / "libdmlc.a"
+
+    if not src_libxgboost.exists():
+        raise FileNotFoundError(f"Unable to locate built library: {src_libxgboost}")
+    if not src_libdmlc.exists():
+        raise FileNotFoundError(f"Unable to locate built library: {src_libdmlc}")
+
+    dst_libxgboost = xgboost_lib_dir / "libxgboost.a"
+    dst_libdmlc = xgboost_lib_dir / "libdmlc.a"
+
+    info(f"Copying XGBoost library: {src_libxgboost} -> {dst_libxgboost}")
+    shutil.copy2(src_libxgboost, dst_libxgboost)
+    info(f"Copying DMLC library: {src_libdmlc} -> {dst_libdmlc}")
+    shutil.copy2(src_libdmlc, dst_libdmlc)
+
+    src_inc_root = source_dir / "include" / "xgboost"
+    if not src_inc_root.exists():
+        raise FileNotFoundError(f"XGBoost headers not found: {src_inc_root}")
+
+    info(f"Copying XGBoost headers from {src_inc_root} -> {xgboost_inc_dir}")
+    copy_folder(str(src_inc_root), str(xgboost_inc_dir), patterns=["**/*.h"], overwrite=True)
+
+    info("XGBoost build and staging complete.")
+
+
 
 if __name__ == "__main__":
     # Determine a robust absolute base directory (script location)
@@ -633,33 +710,47 @@ if __name__ == "__main__":
 
     # Parse optional flags for this setup script
     build_bitwuzla_flag = False
+    build_xgboost_flag = False
     if "--bitwuzla" in sys.argv:
         build_bitwuzla_flag = True
         try:
             sys.argv.remove("--bitwuzla")
         except ValueError:
             pass
+    if "--xgboost" in sys.argv:
+        build_xgboost_flag = True
+        try:
+            sys.argv.remove("--xgboost")
+        except ValueError:
+            pass
 
     # Build dependency archives with autotools on non-Windows hosts.
     # Windows users should provide dependencies through vcpkg/system packages.
     if not is_windows():
-        try:
-            build_gmp()
-        except Exception as e:
-            error(f"build_gmp failed: {e}")
-            sys.exit(1)
+        # try:
+        #     build_gmp()
+        # except Exception as e:
+        #     error(f"build_gmp failed: {e}")
+        #     sys.exit(1)
 
-        try:
-            build_mpfr()
-        except Exception as e:
-            error(f"build_mpfr failed: {e}")
-            sys.exit(1)
-        # Optionally build bitwuzla when requested
-        if build_bitwuzla_flag:
+        # try:
+        #     build_mpfr()
+        # except Exception as e:
+        #     error(f"build_mpfr failed: {e}")
+        #     sys.exit(1)
+        # # Optionally build bitwuzla when requested
+        # if build_bitwuzla_flag:
+        #     try:
+        #         build_bitwuzla()
+        #     except Exception as e:
+        #         error(f"build_bitwuzla failed: {e}")
+        #         sys.exit(1)
+        # Optionally build xgboost when requested
+        if build_xgboost_flag:
             try:
-                build_bitwuzla()
+                build_xgboost()
             except Exception as e:
-                error(f"build_bitwuzla failed: {e}")
+                error(f"build_xgboost failed: {e}")
                 sys.exit(1)
     else:
         warn("Windows detected: skipping GMP/MPFR autotools build in setup.py.")
