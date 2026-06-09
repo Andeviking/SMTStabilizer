@@ -95,7 +95,11 @@ void Bitwuzla::add_assertion(const node::Node &assertion) {
         visit.pop_back();
     }
     d_assertions.emplace_back(d_cache.at(assertion));
-    d_features.at(static_cast<size_t>(d_assertions.back().kind()))++;
+    auto it = d_features.find(d_cache.at(assertion).kind());
+    if (it != d_features.end()) {
+        it->second++;
+    }
+    // d_features.at(static_cast<size_t>(d_assertions.back().kind()))++;
     // d_solver.assert_formula(d_cache.at(assertion));
 }
 
@@ -119,7 +123,10 @@ bitwuzla::Term Bitwuzla::mk_term(const node::Node &node) {
     std::vector<bitwuzla::Term> args(children.size());
     for (size_t i = 0; i < children.size(); i++) {
         args[i] = d_cache.at(children[i]);
-        d_features.at(static_cast<size_t>(args[i].kind()))++;
+        auto it = d_features.find(args[i].kind());
+        if (it != d_features.end()) {
+            it->second++;
+        }
     }
 
     auto sort = mk_sort(node->getSort());
@@ -244,11 +251,11 @@ bitwuzla::Term Bitwuzla::mk_term(const node::Node &node) {
 }
 
 std::string Bitwuzla::check_sat() {
-// for (const auto &c : d_features) {
-//     std::cout << c << ',';
-// }
-// std::cout << std::endl;
-// exit(0);
+    // for (const auto &c : _features()) {
+    //     std::cout << c << ',';
+    // }
+    // std::cout << std::endl;
+    // exit(0);
 #ifdef SMTSTABILIZER_HAVE_XGBOOST
 
 #endif
@@ -256,6 +263,8 @@ std::string Bitwuzla::check_sat() {
     for (const auto &assertion : d_assertions) {
         solver.assert_formula(assertion);
     }
+    // solver.print_formula(std::cout);
+    // exit(0);
 
     auto result = solver.check_sat();
     if (result == bitwuzla::Result::SAT) {

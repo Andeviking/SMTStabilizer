@@ -411,7 +411,7 @@ def build_mpfr():
         # Configure
         info("Running configure")
         env = os.environ.copy()
-        opt_flags = "-O3 -march=native -mtune=native -fno-strict-aliasing -fwrapv -pipe"
+        opt_flags = "-O3  -pipe"
         env.update({
             "CFLAGS": opt_flags,
             "CXXFLAGS": opt_flags + " -std=gnu++20",
@@ -486,7 +486,7 @@ def build_gmp():
         # Configure
         info("Running configure")
         env = os.environ.copy()
-        opt_flags = "-O3 -march=native -mtune=native -fno-strict-aliasing -fwrapv -pipe"
+        opt_flags = "-O3 -pipe"
         env.update({
             "CFLAGS": opt_flags,
             "CXXFLAGS": opt_flags + " -std=gnu++20",
@@ -561,7 +561,7 @@ def build_bitwuzla(version: str = "0.9.1"):
     info(f"Building Bitwuzla from {source_dir} -> prefix={prefix} with {jobs} jobs")
     try:
         env = os.environ.copy()
-        opt_flags = "-O3 -march=native -mtune=native -fno-strict-aliasing -fwrapv -pipe"
+        opt_flags = "-O3   -pipe"
         env.update({
             "CFLAGS": opt_flags,
             "CXXFLAGS": opt_flags + " -std=gnu++20",
@@ -635,7 +635,7 @@ def build_xgboost():
     info(f"Building XGBoost from {source_dir} with {jobs} jobs")
     try:
         env = os.environ.copy()
-        opt_flags = "-O3 -march=native -mtune=native -fno-strict-aliasing -fwrapv -pipe"
+        opt_flags = "-O3   -pipe"
         env.update({
             "CFLAGS": opt_flags,
             "CXXFLAGS": opt_flags + " -std=gnu++20",
@@ -727,31 +727,29 @@ if __name__ == "__main__":
     # Build dependency archives with autotools on non-Windows hosts.
     # Windows users should provide dependencies through vcpkg/system packages.
     if not is_windows():
-        # try:
-        #     build_gmp()
-        # except Exception as e:
-        #     error(f"build_gmp failed: {e}")
-        #     sys.exit(1)
+        try:
+            build_gmp()
+        except Exception as e:
+            error(f"build_gmp failed: {e}")
+            sys.exit(1)
 
-        # try:
-        #     build_mpfr()
-        # except Exception as e:
-        #     error(f"build_mpfr failed: {e}")
-        #     sys.exit(1)
-        # # Optionally build bitwuzla when requested
-        # if build_bitwuzla_flag:
-        #     try:
-        #         build_bitwuzla()
-        #     except Exception as e:
-        #         error(f"build_bitwuzla failed: {e}")
-        #         sys.exit(1)
+        try:
+            build_mpfr()
+        except Exception as e:
+            error(f"build_mpfr failed: {e}")
+            sys.exit(1)
+        # Optionally build bitwuzla when requested
+        try:
+            build_bitwuzla()
+        except Exception as e:
+            error(f"build_bitwuzla failed: {e}")
+            sys.exit(1)
         # Optionally build xgboost when requested
-        if build_xgboost_flag:
-            try:
-                build_xgboost()
-            except Exception as e:
-                error(f"build_xgboost failed: {e}")
-                sys.exit(1)
+        try:
+            build_xgboost()
+        except Exception as e:
+            error(f"build_xgboost failed: {e}")
+            sys.exit(1)
     else:
         warn("Windows detected: skipping GMP/MPFR autotools build in setup.py.")
         warn("Install dependencies with vcpkg and set VCPKG_ROOT before running setup.py.")

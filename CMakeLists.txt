@@ -60,7 +60,7 @@ set(CMAKE_CXX_STANDARD 20)
 # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -flto=auto -fPIC")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    set(SPEED_FLAGS "-O3 -march=native -mtune=native -funroll-loops -fstrict-aliasing -fomit-frame-pointer -fPIC")
+    set(SPEED_FLAGS "-O3 -funroll-loops -fstrict-aliasing -fomit-frame-pointer -fPIC")
 elseif(MSVC)
     set(SPEED_FLAGS "/O2")
 else()

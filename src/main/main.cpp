@@ -165,6 +165,12 @@ int main(int argc, char *argv[]) {
                 dmat = nullptr;
             }
 #endif
+            // auto &bzla_options = solver.options();
+            // bzla_options.set(bitwuzla::Option::ABSTRACTION, options.get<bool>(stabilizer::option::Option::BZLA_ABSTRACTION));
+            // bzla_options.set(bitwuzla::Option::PP_VARIABLE_SUBST, options.get<bool>(stabilizer::option::Option::BZLA_SUBST));
+            // bzla_options.set(bitwuzla::Option::PP_NORMALIZE, options.get<bool>(stabilizer::option::Option::BZLA_NORMALIZE));
+            // bzla_options.set(bitwuzla::Option::REWRITE_LEVEL, options.get<uint64_t>(stabilizer::option::Option::BZLA_REWRITE_LEVEL));
+            // bzla_options.set(bitwuzla::Option::SAT_SOLVER, options.get<std::string>(stabilizer::option::Option::BZLA_SAT_SOLVER));
 
             std::cout << solver.check_sat() << std::endl;
 #else
